@@ -1,0 +1,3 @@
+include ':MediaPlayerControl'
+include ':app'
+rootProject.name = "MediaPlayerEx"
