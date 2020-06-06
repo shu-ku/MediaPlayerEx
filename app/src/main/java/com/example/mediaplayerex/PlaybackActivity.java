@@ -23,6 +23,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     private Player mPlayer;
     private boolean isPlayer;
     private boolean readExternalStoragePermission;
+    private SurfaceHolder surfaceHolder;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                 " format="+ format +
                 " width="+ width +
                 " height="+ height);
+        surfaceHolder = holder;
     }
 
     @Override
@@ -72,7 +74,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     public void button_start() {
         if (!isPlayer && readExternalStoragePermission) {
             mPlayer = new Player();
-            setContentPath();
+            prepare();
             mPlayer.start();
             isPlayer = true;
         }
@@ -97,14 +99,14 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         }
     };
 
-    private void setContentPath(){
+    private void prepare(){
         String path = "sdcard/content/sintel-1024-surround.mp4";
-        mPlayer.setContentPath(path);
+        mPlayer.prepare(path, surfaceHolder);
     }
 
     public void checkPermission() {
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED) {
             readExternalStoragePermission = true;
         } else {
@@ -113,7 +115,9 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     }
 
     private void requestReadExternalStoragePermission() {
-        ActivityCompat.requestPermissions(PlaybackActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+        ActivityCompat.requestPermissions(PlaybackActivity.this, new String[]{
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
     }
 
     @Override
