@@ -1,16 +1,28 @@
 package com.example.mediaplayerex;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.example.mediaplayercontrol.Player;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder.Callback{
     private final static String TAG = "PlaybackActivity";
+    private final int REQUEST_PERMISSION = 1000;
+    private Player mPlayer;
+    private boolean isPlayer;
+    private boolean readExternalStoragePermission;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,6 +39,8 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         stop_btn.setOnClickListener(buttonClick);
         final Button resume_btn = findViewById(R.id.playback_resume);
         resume_btn.setOnClickListener(buttonClick);
+
+        checkPermission();
     }
 
     @Override
@@ -55,20 +69,63 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                 " surface="+ holder.getSurface());
     }
 
+    public void button_start() {
+        if (!isPlayer && readExternalStoragePermission) {
+            mPlayer = new Player();
+            setContentPath();
+            mPlayer.start();
+            isPlayer = true;
+        }
+    }
+
     private View.OnClickListener buttonClick = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             switch (view.getId()) {
                 case R.id.playback_start:
                     Log.d(TAG,"start, Perform action on click");
+                    button_start();
                     break;
                 case R.id.playback_stop:
                     Log.d(TAG,"stop, Perform action on click");
                     break;
                 case R.id.playback_resume:
                     Log.d(TAG,"resume, Perform action on click");
+                    checkPermission();
                     break;
             }
         }
     };
+
+    private void setContentPath(){
+        String path = "sdcard/content/sintel-1024-surround.mp4";
+        mPlayer.setContentPath(path);
+    }
+
+    public void checkPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            readExternalStoragePermission = true;
+        } else {
+            requestReadExternalStoragePermission();
+        }
+    }
+
+    private void requestReadExternalStoragePermission() {
+        ActivityCompat.requestPermissions(PlaybackActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                readExternalStoragePermission = true;
+            } else {
+                Toast toast = Toast.makeText(this,
+                        "許可されないとアプリが実行できません", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        }
+    }
 }

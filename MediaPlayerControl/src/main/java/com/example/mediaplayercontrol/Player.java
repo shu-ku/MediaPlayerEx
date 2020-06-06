@@ -1,22 +1,22 @@
 package com.example.mediaplayercontrol;
 
-import android.media.MediaFormat;
 import android.util.Log;
 
 public class Player {
-    private static final String TAG = "Player";
-    class MediaFormatManager {
-        public MediaFormat format = null;
-        public Codec codec = null;
+    private final static String TAG = "Player";
+    private String path = "";
 
-        MediaFormatManager(MediaFormat format, Codec codec) {
-            this.format = format;
-            this.codec = codec;
-        }
+    public Player() {
+
     }
 
     public void start() {
-        Log.i(TAG, "");
+        Log.i(TAG, "start()");
+
+
+    }
+
+    public void setContentPath(String path){
+        this.path = path;
     }
 }
-
