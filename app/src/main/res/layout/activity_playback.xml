@@ -52,7 +52,8 @@
         </Button>
 
         <Button
-            android:text="resume"
+            android:text="permission"
+            android:textSize="10sp"
             android:id="@+id/playback_resume"
             android:layout_weight="1"
             android:layout_width="match_parent"

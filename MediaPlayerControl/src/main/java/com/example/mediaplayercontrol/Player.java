@@ -9,11 +9,17 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class Player {
     private final static String TAG = "Player";
     private String path = "";
     private SurfaceHolder surfaceHolder;
+    private Extractor extractor;
+    private Codec codec;
+    private Format formats[];
+    final Queue<SampleHolder> sampleHolders = new ArrayDeque<>();
 
     public Player() {
 
@@ -22,11 +28,42 @@ public class Player {
     public void prepare(String path, SurfaceHolder surfaceHolder){
         this.path = path;
         this.surfaceHolder = surfaceHolder;
+        extractor = new Extractor();
+        formats = new Format[2];
+        formats[0] = new Format();
+        formats[1] = new Format();
+        extractor.initialize(path, formats, sampleHolders);
+        for (Format format: formats) {
+            if (format.isVideo) {
+                format.codec = new VideoCodec();
+            } else {
+                format.codec = new AudioCodec();
+            }
+            format.codec.initialize(format, surfaceHolder, sampleHolders);
+        }
     }
 
     public void start() {
         Log.i(TAG, "start()");
-        simpleVideoStart();
+        extractor.start();
+//        simpleVideoStart();
+        for (Format format: formats) {
+            format.codec.start();
+        }
+
+        try {
+            extractor.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+//        synchronized (sampleHolders) {
+//
+//        }
+
+        for (SampleHolder sampleHolder: sampleHolders) {
+            Log.i(TAG, sampleHolder.toString());
+        }
     }
 
     public void simpleVideoStart(){
@@ -63,6 +100,9 @@ public class Player {
                     long presentationTimeUs = 0;
                     if (inputBufferIndex >= 0) {
                         inputBuffer = inputBuffers[inputBufferIndex];
+                        Log.i(TAG,
+                                "inputBufferIndex=" + inputBufferIndex +
+                                        " inputBuffer=" + inputBuffer);
                         int bufferSize = extractor.readSampleData(inputBuffer, 0);
                         if (bufferSize < 0) {
                             inputEOS = true;
@@ -70,6 +110,7 @@ public class Player {
                         } else {
                             presentationTimeUs = extractor.getSampleTime();
                         }
+                        Log.i(TAG, "presentationTimeUs=" + (presentationTimeUs / 1000 / 1000));
                         codec.queueInputBuffer(inputBufferIndex, 0, bufferSize, presentationTimeUs,
                                 inputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
                         if (!inputEOS) {
