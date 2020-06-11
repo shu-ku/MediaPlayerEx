@@ -44,26 +44,23 @@ public class Player {
     }
 
     public void start() {
+//        simpleVideoStart();
         Log.i(TAG, "start()");
         extractor.start();
-//        simpleVideoStart();
         for (Format format: formats) {
             format.codec.start();
         }
-
         try {
             extractor.join();
+            Log.i(TAG, "extractor end");
+            for (Format format : formats) {
+                format.codec.join();
+                Log.i(TAG, "codec " + format.isVideo + " end");
+
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-//        synchronized (sampleHolders) {
-//
-//        }
-
-//        for (SampleHolder sampleHolder: sampleHolders) {
-//            Log.i(TAG, sampleHolder.toString());
-//        }
     }
 
     public void simpleVideoStart(){
@@ -121,6 +118,7 @@ public class Player {
 
                     MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
                     int outputBufferIndex = codec.dequeueOutputBuffer(info, 0);
+                    Log.i(TAG, "outputBufferIndex=" + outputBufferIndex);
                     if (outputBufferIndex >= 0) {
                         ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferIndex);
                         codec.releaseOutputBuffer(outputBufferIndex, true);

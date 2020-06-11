@@ -1,6 +1,7 @@
 package com.example.mediaplayercontrol;
 
 import android.media.MediaCodec;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
@@ -9,12 +10,15 @@ import java.nio.ByteBuffer;
 import java.util.Queue;
 
 public class Codec extends Thread{
-    protected ByteBuffer[] inputBuffers;
-    protected ByteBuffer[] outputBuffers;
-    protected ByteBuffer inputBuffer;
+    private final String TAG = "Codec";
     protected Format format;
     protected MediaCodec codec;
     protected SampleQueue sampleQueue;
+    private boolean EOS;
+    protected long presentationTimeUs;
+    protected int outputIndex;
+    protected MediaCodec.BufferInfo info;
+    private int playbackStatus = 1;
 
     public Codec() {
 
@@ -23,13 +27,42 @@ public class Codec extends Thread{
         this.sampleQueue = sampleQueue;
     }
 
-    public ByteBuffer getInputBuffer() {
-        int inputBufferIndex = codec.dequeueInputBuffer(0);
-        inputBuffer = inputBuffers[inputBufferIndex];
-        return inputBuffer;
+    protected boolean processOutputBuffer() {
+        return false;
     }
 
     public void run() {
+        boolean result = false;
+        ByteBuffer inputBuffer = null;
+        while (playbackStatus == 1) {
+            if (sampleQueue.size() > 0 && sampleQueue.isVideo(format.tracIndex)) {
+                int inputIndex = codec.dequeueInputBuffer(10);
+                if (inputIndex >= 0) {
+                    inputBuffer = codec.getInputBuffer(inputIndex);
+                    if (inputBuffer != null) {
+                        SampleHolder sampleHolder = sampleQueue.poll();
+                        presentationTimeUs = sampleHolder.presentationTimeUs;
+                        Log.i(TAG, "queueInputBuffer presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " isVideo=" + format.isVideo);
+                        inputBuffer.put(sampleHolder.inputBuffer.array(), 0, sampleHolder.inputBuffer.limit());
+                        codec.queueInputBuffer(inputIndex, 0, sampleHolder.inputBuffer.limit(), presentationTimeUs, 0);
+                    }
+                }
+            } else {
+                if (EOS) {
+                    break;
+                }
+                try {
+                    Thread.sleep(10); // 0.01sec sleep
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            result = processOutputBuffer();
+        }
+    }
 
+    public boolean release() {
+        playbackStatus = 0;
+        return false;
     }
 }

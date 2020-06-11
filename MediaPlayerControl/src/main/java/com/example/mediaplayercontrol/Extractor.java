@@ -44,6 +44,7 @@ public class Extractor extends Thread{
                 format[0].format = mediaFormat;
                 format[0].mimeType = mimeType;
                 format[0].isVideo = true;
+                format[0].tracIndex = i;
                 break;
             }
         }
@@ -55,6 +56,7 @@ public class Extractor extends Thread{
                 format[1].format = mediaFormat;
                 format[1].mimeType = mimeType;
                 format[1].isVideo = false;
+                format[1].tracIndex = i;
                 break;
             }
         }
@@ -75,13 +77,12 @@ public class Extractor extends Thread{
                 extractor.advance();
 
                 if (sampleQueue.size() > 100) {
-                    sampleQueue.poll();
                     try {
-                        Thread.sleep(500); // 0.5sec sleep
+                        Thread.sleep(10); // 0.01sec sleep
                     } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
-
             } else {
                 break;
             }

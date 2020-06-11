@@ -8,6 +8,7 @@ public class Format {
     public String mimeType;
     public Codec codec;
     public boolean isVideo;
+    public int tracIndex;
 
     public Format() {
 

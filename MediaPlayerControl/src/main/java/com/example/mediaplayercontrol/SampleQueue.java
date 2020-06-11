@@ -1,6 +1,7 @@
 package com.example.mediaplayercontrol;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.Queue;
 
 public class SampleQueue {
@@ -20,5 +21,9 @@ public class SampleQueue {
 
     public synchronized int size() {
         return sampleHolders.size();
+    }
+
+    public synchronized boolean isVideo(int trackIndex) {
+        return Objects.requireNonNull(sampleHolders.peek()).trackIndex == trackIndex;
     }
 }
