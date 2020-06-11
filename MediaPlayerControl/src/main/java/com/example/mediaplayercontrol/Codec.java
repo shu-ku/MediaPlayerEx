@@ -14,13 +14,13 @@ public class Codec extends Thread{
     protected ByteBuffer inputBuffer;
     protected Format format;
     protected MediaCodec codec;
-    protected Queue<SampleHolder> sampleHolders;
+    protected SampleQueue sampleQueue;
 
     public Codec() {
 
     }
-    public void initialize(Format format, SurfaceHolder surfaceHolder, Queue<SampleHolder> sampleHolders) {
-        this.sampleHolders = sampleHolders;
+    public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
+        this.sampleQueue = sampleQueue;
     }
 
     public ByteBuffer getInputBuffer() {
@@ -30,5 +30,6 @@ public class Codec extends Thread{
     }
 
     public void run() {
+
     }
 }

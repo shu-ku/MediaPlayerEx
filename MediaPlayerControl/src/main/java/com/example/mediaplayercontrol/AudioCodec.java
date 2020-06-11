@@ -8,8 +8,8 @@ import java.util.Queue;
 
 public class AudioCodec extends Codec {
     @Override
-    public void initialize(Format f, SurfaceHolder surfaceHolder, Queue<SampleHolder> sampleHolders) {
-        super.initialize(format, null, sampleHolders);
+    public void initialize(Format f, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
+        super.initialize(format, null, sampleQueue);
         format = f;
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);

@@ -10,8 +10,8 @@ public class VideoCodec extends Codec{
     private SurfaceHolder surfaceHolder;
 
     @Override
-    public void initialize(Format f, SurfaceHolder sh, Queue<SampleHolder> sampleHolders) {
-        super.initialize(format, null, sampleHolders);
+    public void initialize(Format f, SurfaceHolder sh, SampleQueue sampleQueue) {
+        super.initialize(format, null, sampleQueue);
         format = f;
         surfaceHolder = sh;
         try {

@@ -19,7 +19,7 @@ public class Player {
     private Extractor extractor;
     private Codec codec;
     private Format formats[];
-    final Queue<SampleHolder> sampleHolders = new ArrayDeque<>();
+    private SampleQueue sampleQueue = new SampleQueue();
 
     public Player() {
 
@@ -32,14 +32,14 @@ public class Player {
         formats = new Format[2];
         formats[0] = new Format();
         formats[1] = new Format();
-        extractor.initialize(path, formats, sampleHolders);
+        extractor.initialize(path, formats, sampleQueue);
         for (Format format: formats) {
             if (format.isVideo) {
                 format.codec = new VideoCodec();
             } else {
                 format.codec = new AudioCodec();
             }
-            format.codec.initialize(format, surfaceHolder, sampleHolders);
+            format.codec.initialize(format, surfaceHolder, sampleQueue);
         }
     }
 
@@ -61,9 +61,9 @@ public class Player {
 //
 //        }
 
-        for (SampleHolder sampleHolder: sampleHolders) {
-            Log.i(TAG, sampleHolder.toString());
-        }
+//        for (SampleHolder sampleHolder: sampleHolders) {
+//            Log.i(TAG, sampleHolder.toString());
+//        }
     }
 
     public void simpleVideoStart(){

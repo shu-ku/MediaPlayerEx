@@ -16,7 +16,7 @@ public class Extractor extends Thread{
 
     private MediaExtractor extractor;
     private boolean inputEOS;
-    Queue<SampleHolder> sampleHolders;
+    SampleQueue sampleQueue;
 
     long minPrime;
     private ByteBuffer inputBuffer;
@@ -25,13 +25,13 @@ public class Extractor extends Thread{
         extractor = new MediaExtractor();
     }
 
-    public void initialize(String path, Format[] format, Queue<SampleHolder> sampleHolders) {
+    public void initialize(String path, Format[] format, SampleQueue sampleQueue) {
         try {
             extractor.setDataSource(path);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.sampleHolders = sampleHolders;
+        this.sampleQueue = sampleQueue;
         int tracks = extractor.getTrackCount();
         MediaFormat mediaFormat;
         String mimeType;
@@ -70,12 +70,12 @@ public class Extractor extends Thread{
             }
             if (!inputEOS) {
                 presentationTimeUs = extractor.getSampleTime();
-                Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleHolders.size=" + sampleHolders.size());
-                sampleHolders.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
+                Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
+                sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
                 extractor.advance();
 
-                if (sampleHolders.size() > 100) {
-                    sampleHolders.poll();
+                if (sampleQueue.size() > 100) {
+                    sampleQueue.poll();
                     try {
                         Thread.sleep(500); // 0.5sec sleep
                     } catch (InterruptedException e) {
