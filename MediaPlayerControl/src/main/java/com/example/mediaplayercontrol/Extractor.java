@@ -44,7 +44,7 @@ public class Extractor extends Thread{
                 format[0].format = mediaFormat;
                 format[0].mimeType = mimeType;
                 format[0].isVideo = true;
-                format[0].tracIndex = i;
+                format[0].trackIndex = i;
                 break;
             }
         }
@@ -56,7 +56,7 @@ public class Extractor extends Thread{
                 format[1].format = mediaFormat;
                 format[1].mimeType = mimeType;
                 format[1].isVideo = false;
-                format[1].tracIndex = i;
+                format[1].trackIndex = i;
                 break;
             }
         }
@@ -64,7 +64,7 @@ public class Extractor extends Thread{
 
     public void run() {
         while (true) {
-            ByteBuffer inputBuffer = ByteBuffer.allocate(1024 * 1024);
+            ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
             long presentationTimeUs = 0;
             int bufferSize = extractor.readSampleData(inputBuffer, 0);
             if (bufferSize < 0) {
@@ -75,10 +75,9 @@ public class Extractor extends Thread{
                 Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
                 sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
                 extractor.advance();
-
-                if (sampleQueue.size() > 100) {
+                if (sampleQueue.size() > 1000) {
                     try {
-                        Thread.sleep(10); // 0.01sec sleep
+                        Thread.sleep(100); // 0.01sec sleep
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -87,5 +86,7 @@ public class Extractor extends Thread{
                 break;
             }
         }
+        extractor.release();
+        extractor = null;
     }
 }

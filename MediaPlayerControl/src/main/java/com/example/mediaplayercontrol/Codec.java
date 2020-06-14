@@ -14,17 +14,18 @@ public class Codec extends Thread{
     protected Format format;
     protected MediaCodec codec;
     protected SampleQueue sampleQueue;
-    private boolean EOS;
     protected long presentationTimeUs;
     protected int outputIndex;
     protected MediaCodec.BufferInfo info;
-    private int playbackStatus = 1;
+    private int playbackStatus;
+    protected SampleHolder sampleHolder;
 
     public Codec() {
 
     }
     public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         this.sampleQueue = sampleQueue;
+        playbackStatus = 1;
     }
 
     protected boolean processOutputBuffer() {
@@ -35,12 +36,12 @@ public class Codec extends Thread{
         boolean result = false;
         ByteBuffer inputBuffer = null;
         while (playbackStatus == 1) {
-            if (sampleQueue.size() > 0 && sampleQueue.isVideo(format.tracIndex)) {
+            if (sampleQueue.size() > 0 && sampleQueue.isVideo(format.trackIndex)) {
                 int inputIndex = codec.dequeueInputBuffer(10);
                 if (inputIndex >= 0) {
                     inputBuffer = codec.getInputBuffer(inputIndex);
                     if (inputBuffer != null) {
-                        SampleHolder sampleHolder = sampleQueue.poll();
+                        sampleHolder = sampleQueue.poll();
                         presentationTimeUs = sampleHolder.presentationTimeUs;
                         Log.i(TAG, "queueInputBuffer presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " isVideo=" + format.isVideo);
                         inputBuffer.put(sampleHolder.inputBuffer.array(), 0, sampleHolder.inputBuffer.limit());
@@ -48,9 +49,6 @@ public class Codec extends Thread{
                     }
                 }
             } else {
-                if (EOS) {
-                    break;
-                }
                 try {
                     Thread.sleep(10); // 0.01sec sleep
                 } catch (InterruptedException e) {
@@ -61,8 +59,10 @@ public class Codec extends Thread{
         }
     }
 
-    public boolean release() {
+    public void release() {
         playbackStatus = 0;
-        return false;
+        codec.stop();
+        codec.release();
+        codec = null;
     }
 }

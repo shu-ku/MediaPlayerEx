@@ -100,7 +100,8 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     };
 
     private void prepare(){
-        String path = "sdcard/content/sintel-1024-surround.mp4";
+//        String path = "sdcard/content/sintel-1024-surround.mp4";
+        String path = "sdcard/content/pretender.mp4";
         mPlayer.prepare(path, surfaceHolder);
     }
 

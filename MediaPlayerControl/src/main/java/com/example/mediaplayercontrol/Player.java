@@ -17,9 +17,8 @@ public class Player {
     private String path = "";
     private SurfaceHolder surfaceHolder;
     private Extractor extractor;
-    private Codec codec;
     private Format formats[];
-    private SampleQueue sampleQueue = new SampleQueue();
+    private SampleQueue sampleQueue;
 
     public Player() {
 
@@ -32,6 +31,7 @@ public class Player {
         formats = new Format[2];
         formats[0] = new Format();
         formats[1] = new Format();
+        sampleQueue = new SampleQueue();
         extractor.initialize(path, formats, sampleQueue);
         for (Format format: formats) {
             if (format.isVideo) {
@@ -53,10 +53,17 @@ public class Player {
         try {
             extractor.join();
             Log.i(TAG, "extractor end");
-            for (Format format : formats) {
-                format.codec.join();
-                Log.i(TAG, "codec " + format.isVideo + " end");
-
+            while (sampleQueue.size() != 0) {
+                try {
+                    Thread.sleep(1000); // 1sec sleep
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                for (Format format: formats) {
+                    Log.i(TAG, "codec end");
+                    format.codec.release();
+                    break;
+                }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
