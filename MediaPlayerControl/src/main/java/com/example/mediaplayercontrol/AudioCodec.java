@@ -11,14 +11,13 @@ public class AudioCodec extends Codec {
     private final String TAG = "AudioCodec";
     private Audio audio;
     private long baseNanoTime;
+    private boolean isFirst = true;
 
     @Override
     public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         super.initialize(format, null, sampleQueue);
         this.format = format;
         baseNanoTime = System.nanoTime();
-        audio = new Audio();
-        audio.initialize(format);
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);
             codec.configure(format.format, null, null, 0);
@@ -30,6 +29,12 @@ public class AudioCodec extends Codec {
 
     @Override
     protected boolean processOutputBuffer() {
+        if (isFirst) {
+            audio = new Audio();
+            audio.initialize(format);
+            isFirst = false;
+        }
+
         info = new MediaCodec.BufferInfo();
         outputIndex = codec.dequeueOutputBuffer(info, 0);
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
