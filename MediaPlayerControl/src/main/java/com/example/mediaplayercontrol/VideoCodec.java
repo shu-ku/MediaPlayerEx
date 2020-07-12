@@ -12,6 +12,7 @@ import java.util.Queue;
 public class VideoCodec extends Codec{
     private final String TAG = "VideoCodec";
     private SurfaceHolder surfaceHolder;
+    private Clock clock;
 
     @Override
     public void initialize(Format format, SurfaceHolder sh, SampleQueue sampleQueue) {
@@ -34,14 +35,35 @@ public class VideoCodec extends Codec{
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
         if (outputIndex >= 0) {
             ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
-
-            codec.releaseOutputBuffer(outputIndex, true);
-            Log.i(TAG, "releaseOutputBuffer presentationTimeUs=" + presentationTimeUs);
+            releaseOutputBuffer(outputIndex);
         } else if (outputIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
 //            outputBuffers = codec.getOutputBuffers();
         } else if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
             format.format = codec.getOutputFormat();
         }
         return true;
+    }
+
+    public void setClock(Clock clock) {
+        this.clock = clock;
+    };
+
+    private void releaseOutputBuffer(int outputIndex) {
+        long currentPosition = clock.getCurrentPosition();
+        long differenceTime =  presentationTimeUs - currentPosition;
+        Log.i(TAG, "releaseOutputBuffer" +
+                " presentationTimeUs=" + presentationTimeUs +
+                " currentPosition=" + currentPosition +
+                " differenceTime=" + differenceTime);
+        if (Math.abs(differenceTime) <= 500_000) {
+            codec.releaseOutputBuffer(outputIndex, true);
+        } else if (differenceTime < -500_000) {
+            Log.i(TAG, "releaseOutputBuffer" +
+                    " differenceTime=" + differenceTime + " drop");
+            codec.releaseOutputBuffer(outputIndex, false);
+        } else if (differenceTime > 500_000) {
+            Log.i(TAG, "releaseOutputBuffer" +
+                    " differenceTime=" + differenceTime + " wait");
+        }
     }
 }

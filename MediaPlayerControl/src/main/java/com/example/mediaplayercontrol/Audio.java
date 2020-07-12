@@ -10,23 +10,39 @@ import android.util.Log;
 
 import java.nio.ByteBuffer;
 
-public class Audio implements AudioTrack.OnPlaybackPositionUpdateListener{
+public class Audio{
     private final String TAG = "AudioTrack";
-    private AudioTrack mAudioTrack;
+    private AudioTrack mAudioTrack = null;
     private AudioAttributes attributes;
     private AudioFormat audioFormat;
     private MediaFormat format;
     private int mSampleRate;
     private long pts;
+    private boolean first;
 
     public Audio () {
 
     }
 
+    public long getCurrentPosition() {
+        if (mAudioTrack != null) {
+            long currentPosition = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000);
+            Log.i(TAG, " playbackHeadPosition=" + currentPosition);
+            return currentPosition;
+        }
+        return 0L;
+    }
+
     public void write(ByteBuffer outputBuffer) {
         int writeSize = mAudioTrack.write(outputBuffer, outputBuffer.remaining(), AudioTrack.WRITE_BLOCKING);
-//        Log.i(TAG,  "writeSize=" + writeSize);
     }
+
+    public void pause() {
+        Log.i(TAG, "pause()");
+        if (mAudioTrack != null) {
+            mAudioTrack.pause();
+        }
+    };
 
     public void initialize(Format format) {
         this.format = format.format;
@@ -39,34 +55,13 @@ public class Audio implements AudioTrack.OnPlaybackPositionUpdateListener{
         configAudioFormat(channelOut);
         Log.i(TAG,
         "CHANNEL_COUNT=" + channelOut +
-                "　mSampleRate=" + mSampleRate);
+                " mSampleRate=" + mSampleRate);
         mAudioTrack = new AudioTrack.Builder()
                 .setAudioAttributes(attributes)
                 .setAudioFormat(audioFormat)
                 .setBufferSizeInBytes(getBufferSizeInBytes(channelOut))
                 .build();
-        setNorification();
         mAudioTrack.play();
-    }
-
-    private void setNorification() {
-        mAudioTrack.setPlaybackPositionUpdateListener(this);
-        mAudioTrack.setPositionNotificationPeriod(1024);
-
-//        int result = mAudioTrack.setPositionNotificationPeriod(1024);
-//        Log.i(TAG, "setNorification=" + result);
-//        mAudioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
-//            @Override
-//            public void onMarkerReached(AudioTrack track) {
-//                Log.i(TAG, "onMarkerReached");
-//            }
-//
-//            @Override
-//            public void onPeriodicNotification(AudioTrack track) {
-//                Log.i(TAG, "onPeriodicNotification");
-//
-//            }
-//        });
     }
 
     private void configAudioAttributes() {
@@ -95,15 +90,5 @@ public class Audio implements AudioTrack.OnPlaybackPositionUpdateListener{
                 "bufferSizeInBytes=" + bufferSizeInBytes +
                         " maxBufferSize=" + maxBufferSize);
         return bufferSizeInBytes;
-    }
-
-    @Override
-    public void onMarkerReached(AudioTrack track) {
-        Log.i(TAG, "onMarkerReached");
-    }
-
-    @Override
-    public void onPeriodicNotification(AudioTrack track) {
-        Log.i(TAG, "onPeriodicNotification");
     }
 }

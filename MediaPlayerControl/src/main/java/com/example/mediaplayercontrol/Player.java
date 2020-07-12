@@ -33,13 +33,20 @@ public class Player {
         formats[1] = new Format();
         sampleQueue = new SampleQueue();
         extractor.initialize(path, formats, sampleQueue);
+        Clock clock = null;
         for (Format format: formats) {
             if (format.isVideo) {
                 format.codec = new VideoCodec();
             } else {
                 format.codec = new AudioCodec();
+                clock = (Clock) format.codec;
             }
             format.codec.initialize(format, surfaceHolder, sampleQueue);
+        }
+        for (Format format: formats) {
+            if (format.isVideo) {
+                format.codec.setClock(clock);
+            }
         }
     }
 
@@ -50,14 +57,14 @@ public class Player {
         for (Format format: formats) {
             format.codec.start();
         }
-        try {
-            extractor.join();
-            Log.i(TAG, "extractor end");
-            while (sampleQueue.size() != 0) {
-                try {
-                    Thread.sleep(1000); // 1sec sleep
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        Thread thread = new Thread(new Runnable(){
+            public void run() {
+                while (!sampleQueue.isExtractorEOS() || sampleQueue.size() != 0) {
+                    try {
+                        Thread.sleep(1000); // 1sec sleep
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
                 for (Format format: formats) {
                     Log.i(TAG, "codec end");
@@ -65,8 +72,16 @@ public class Player {
                     break;
                 }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        });
+        thread.start();
+    }
+
+    public void pause() {
+        Log.i(TAG, "pause()");
+        for (Format format: formats) {
+            if (!format.isVideo) {
+                format.codec.pause();
+            }
         }
     }
 

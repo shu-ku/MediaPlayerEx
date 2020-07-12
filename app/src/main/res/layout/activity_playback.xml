@@ -54,7 +54,49 @@
         <Button
             android:text="permission"
             android:textSize="10sp"
+            android:id="@+id/playback_permission"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp">
+        </Button>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:text="prev"
+            android:id="@+id/playback_prev"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp">
+        </Button>
+
+        <Button
+            android:text="resume"
             android:id="@+id/playback_resume"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp">
+        </Button>
+
+        <Button
+            android:text="next"
+            android:id="@+id/playback_next"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

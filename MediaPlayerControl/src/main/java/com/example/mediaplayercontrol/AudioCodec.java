@@ -7,9 +7,9 @@ import android.view.SurfaceHolder;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class AudioCodec extends Codec {
+public class AudioCodec extends Codec implements Clock{
     private final String TAG = "AudioCodec";
-    private Audio audio;
+    private Audio audio = null;
     private long baseNanoTime;
     private boolean isFirst = true;
 
@@ -17,7 +17,8 @@ public class AudioCodec extends Codec {
     public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         super.initialize(format, null, sampleQueue);
         this.format = format;
-        baseNanoTime = System.nanoTime();
+        audio = new Audio();
+        audio.initialize(format);
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);
             codec.configure(format.format, null, null, 0);
@@ -29,12 +30,6 @@ public class AudioCodec extends Codec {
 
     @Override
     protected boolean processOutputBuffer() {
-        if (isFirst) {
-            audio = new Audio();
-            audio.initialize(format);
-            isFirst = false;
-        }
-
         info = new MediaCodec.BufferInfo();
         outputIndex = codec.dequeueOutputBuffer(info, 0);
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
@@ -54,12 +49,16 @@ public class AudioCodec extends Codec {
         return true;
     }
 
-
-    // Correct the time of sound
-    // if (AudioPTS < VideoPTS - ??)
     public long getCurrentPosition() {
-        long nanoTime = System.nanoTime() - baseNanoTime;
-        Log.i(TAG, "nanoTime=" + String.format("%,d", nanoTime) + " presentationTimeUs=" + String.format("%,d", presentationTimeUs));
-        return 0;
+        if (audio != null) {
+            return audio.getCurrentPosition();
+        }
+        return 0L;
     }
+
+    public void pause() {
+        if (audio != null) {
+            audio.pause();
+        }
+    };
 }

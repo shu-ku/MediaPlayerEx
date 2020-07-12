@@ -15,7 +15,6 @@ public class Extractor extends Thread{
     private final static String TAG = "Extractor";
 
     private MediaExtractor extractor;
-    private boolean inputEOS;
     SampleQueue sampleQueue;
 
     long minPrime;
@@ -63,14 +62,12 @@ public class Extractor extends Thread{
     }
 
     public void run() {
-        while (true) {
+        boolean inputEOS = false;
+        while (!inputEOS) {
             ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
             long presentationTimeUs = 0;
             int bufferSize = extractor.readSampleData(inputBuffer, 0);
-            if (bufferSize < 0) {
-                inputEOS = true;
-            }
-            if (!inputEOS) {
+            if (bufferSize >= 0) {
                 presentationTimeUs = extractor.getSampleTime();
                 Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
                 sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
@@ -83,10 +80,11 @@ public class Extractor extends Thread{
                     }
                 }
             } else {
-                break;
+                inputEOS = true;
             }
         }
         extractor.release();
         extractor = null;
+        sampleQueue.setExtractorEOS(true);
     }
 }

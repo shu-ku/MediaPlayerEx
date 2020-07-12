@@ -23,9 +23,9 @@ public class Codec extends Thread{
     public Codec() {
 
     }
+
     public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         this.sampleQueue = sampleQueue;
-        playbackStatus = 1;
     }
 
     protected boolean processOutputBuffer() {
@@ -35,8 +35,8 @@ public class Codec extends Thread{
     public void run() {
         boolean result = false;
         ByteBuffer inputBuffer = null;
-        while (playbackStatus == 1) {
-            if (sampleQueue.size() > 0 && sampleQueue.isVideo(format.trackIndex)) {
+        while (true) {
+            if (sampleQueue.size() > 0 && sampleQueue.checkCodec(format.trackIndex)) {
                 int inputIndex = codec.dequeueInputBuffer(10);
                 if (inputIndex >= 0) {
                     inputBuffer = codec.getInputBuffer(inputIndex);
@@ -60,9 +60,14 @@ public class Codec extends Thread{
     }
 
     public void release() {
-        playbackStatus = 0;
         codec.stop();
         codec.release();
         codec = null;
     }
+
+    public void setClock(Clock clock) {
+    };
+
+    public void pause() {
+    };
 }

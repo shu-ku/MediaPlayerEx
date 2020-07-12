@@ -6,6 +6,7 @@ import java.util.Queue;
 
 public class SampleQueue {
     private final Queue<SampleHolder> sampleHolders = new ArrayDeque<>();
+    private boolean extractorEOS = false;
 
     public SampleQueue() {
 
@@ -23,7 +24,15 @@ public class SampleQueue {
         return sampleHolders.size();
     }
 
-    public synchronized boolean isVideo(int trackIndex) {
+    public synchronized boolean checkCodec(int trackIndex) {
         return Objects.requireNonNull(sampleHolders.peek()).trackIndex == trackIndex;
+    }
+
+    public synchronized boolean isExtractorEOS() {
+        return extractorEOS;
+    }
+
+    public synchronized void setExtractorEOS(boolean extractorEOS) {
+        this.extractorEOS = extractorEOS;
     }
 }

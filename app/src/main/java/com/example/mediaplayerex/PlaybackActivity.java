@@ -34,12 +34,12 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         SurfaceHolder holder = surfaceView.getHolder();
         holder.addCallback(this);
 
-        final Button start_btn = findViewById(R.id.playback_start);
-        start_btn.setOnClickListener(buttonClick);
-        final Button stop_btn = findViewById(R.id.playback_stop);
-        stop_btn.setOnClickListener(buttonClick);
-        final Button resume_btn = findViewById(R.id.playback_resume);
-        resume_btn.setOnClickListener(buttonClick);
+        findViewById(R.id.playback_start).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_stop).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_permission).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_prev).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_resume).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_next).setOnClickListener(buttonClick);
 
         checkPermission();
     }
@@ -80,6 +80,12 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         }
     }
 
+    public void button_stop() {
+        if (isPlayer && readExternalStoragePermission) {
+            mPlayer.pause();
+        }
+    }
+
     private View.OnClickListener buttonClick = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -87,13 +93,24 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                 case R.id.playback_start:
                     Log.d(TAG,"start, Perform action on click");
                     button_start();
+                    Log.d(TAG,"start, end");
                     break;
                 case R.id.playback_stop:
                     Log.d(TAG,"stop, Perform action on click");
+                    button_stop();
+                    break;
+                case R.id.playback_permission:
+                    Log.d(TAG,"resume, Perform action on click");
+                    checkPermission();
+                    break;
+                case R.id.playback_prev:
+                    Log.d(TAG,"prev, Perform action on click");
                     break;
                 case R.id.playback_resume:
                     Log.d(TAG,"resume, Perform action on click");
-                    checkPermission();
+                    break;
+                case R.id.playback_next:
+                    Log.d(TAG,"next, Perform action on click");
                     break;
             }
         }
