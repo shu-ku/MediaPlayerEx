@@ -24,8 +24,9 @@ public class Codec extends Thread{
 
     }
 
-    public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
+    public void prepare(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         this.sampleQueue = sampleQueue;
+        this.format = format;
     }
 
     protected boolean processOutputBuffer() {
@@ -70,4 +71,9 @@ public class Codec extends Thread{
 
     public void pause() {
     };
+
+    public boolean isTunnelingEnabled() {
+        return RendererConfiguration.getInstance().getTunnelingAudioSessionId() !=
+                RendererConfiguration.AUDIO_SESSION_ID_UNSET;
+    }
 }

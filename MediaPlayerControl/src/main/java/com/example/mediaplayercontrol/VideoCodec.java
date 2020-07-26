@@ -2,6 +2,8 @@ package com.example.mediaplayercontrol;
 
 import android.annotation.SuppressLint;
 import android.media.MediaCodec;
+import android.media.MediaFormat;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -15,12 +17,14 @@ public class VideoCodec extends Codec{
     private Clock clock;
 
     @Override
-    public void initialize(Format format, SurfaceHolder sh, SampleQueue sampleQueue) {
-        super.initialize(format, null, sampleQueue);
-        this.format = format;
+    public void prepare(Format format, SurfaceHolder sh, SampleQueue sampleQueue) {
+        super.prepare(format, null, sampleQueue);
         surfaceHolder = sh;
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);
+            Log.i(TAG, "Video Tunnel mode:" + RendererConfiguration.getInstance().getTunnelingAudioSessionId());
+            format.format.setInteger(MediaFormat.KEY_AUDIO_SESSION_ID,
+                    RendererConfiguration.getInstance().getTunnelingAudioSessionId());
             codec.configure(format.format, surfaceHolder.getSurface(), null, 0);
             codec.start();
         } catch (IOException e) {
@@ -30,6 +34,9 @@ public class VideoCodec extends Codec{
 
     @Override
     protected boolean processOutputBuffer() {
+        if (isTunnelingEnabled()) {
+            return false;
+        }
         info = new MediaCodec.BufferInfo();
         outputIndex = codec.dequeueOutputBuffer(info, 0);
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);

@@ -24,7 +24,7 @@ public class Extractor extends Thread{
         extractor = new MediaExtractor();
     }
 
-    public void initialize(String path, Format[] format, SampleQueue sampleQueue) {
+    public void prepare(String path, Format[] format, SampleQueue sampleQueue) {
         try {
             extractor.setDataSource(path);
         } catch (IOException e) {

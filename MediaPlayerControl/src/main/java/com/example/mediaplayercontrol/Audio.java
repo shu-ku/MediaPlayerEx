@@ -44,7 +44,7 @@ public class Audio{
         }
     };
 
-    public void initialize(Format format) {
+    public void prepare(Format format) {
         this.format = format.format;
         int channelOut = AudioFormat.CHANNEL_OUT_MONO;
         if (this.format.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2) {
@@ -62,6 +62,7 @@ public class Audio{
                 .setBufferSizeInBytes(getBufferSizeInBytes(channelOut))
                 .build();
         mAudioTrack.play();
+        RendererConfiguration.getInstance().setTunnelingAudioSessionId(mAudioTrack.getAudioSessionId());
     }
 
     private void configAudioAttributes() {

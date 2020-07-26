@@ -11,14 +11,12 @@ public class AudioCodec extends Codec implements Clock{
     private final String TAG = "AudioCodec";
     private Audio audio = null;
     private long baseNanoTime;
-    private boolean isFirst = true;
 
     @Override
-    public void initialize(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
-        super.initialize(format, null, sampleQueue);
-        this.format = format;
+    public void prepare(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
+        super.prepare(format, null, sampleQueue);
         audio = new Audio();
-        audio.initialize(format);
+        audio.prepare(format);
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);
             codec.configure(format.format, null, null, 0);
