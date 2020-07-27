@@ -73,7 +73,7 @@ public class Codec extends Thread{
     };
 
     public boolean isTunnelingEnabled() {
-        return RendererConfiguration.getInstance().getTunnelingAudioSessionId() !=
-                RendererConfiguration.AUDIO_SESSION_ID_UNSET;
+//        return RendererConfiguration.getInstance().isTunneling();
+        return false;
     }
 }

@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class Audio{
     private final String TAG = "AudioTrack";
@@ -19,6 +20,8 @@ public class Audio{
     private int mSampleRate;
     private long pts;
     private boolean first;
+    private ByteBuffer avSyncHeader;
+    private int bytesUntilNextAvSync = 0;
 
     public Audio () {
 
@@ -33,8 +36,53 @@ public class Audio{
         return 0L;
     }
 
-    public void write(ByteBuffer outputBuffer) {
-        int writeSize = mAudioTrack.write(outputBuffer, outputBuffer.remaining(), AudioTrack.WRITE_BLOCKING);
+    public void write(ByteBuffer outputBuffer, long presentationTimeUs) {
+        if (RendererConfiguration.getInstance().isTunneling()) {
+//            Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + outputBuffer.remaining());
+            int writeSize = writeTunnel(outputBuffer, presentationTimeUs);
+        } else {
+            Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs);
+            int writeSize = mAudioTrack.write(outputBuffer, outputBuffer.remaining(), AudioTrack.WRITE_BLOCKING);
+        }
+    }
+
+    public int writeNonBlocking(ByteBuffer outputBuffer, int size) {
+        return mAudioTrack.write(outputBuffer, size, AudioTrack.WRITE_NON_BLOCKING);
+    }
+
+    public int writeTunnel(ByteBuffer outputBuffer, long presentationTimeUs) {
+        if (avSyncHeader == null) {
+            avSyncHeader = ByteBuffer.allocate(16);
+            avSyncHeader.order(ByteOrder.BIG_ENDIAN);
+            avSyncHeader.putInt(0x55550001);
+        }
+        if (bytesUntilNextAvSync == 0) {
+            avSyncHeader.putInt(4, outputBuffer.remaining());
+            avSyncHeader.putLong(8, presentationTimeUs * 1000);
+            avSyncHeader.position(0);
+            bytesUntilNextAvSync = outputBuffer.remaining();
+        }
+        int avSyncHeaderBytesRemaining = avSyncHeader.remaining();
+        if (avSyncHeaderBytesRemaining > 0) {
+            int writeSize = mAudioTrack.write(avSyncHeader, avSyncHeader.remaining(), AudioTrack.WRITE_NON_BLOCKING);
+            Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + avSyncHeader.remaining() + " writeSize=" + writeSize + " avSyncHeaderBytesRemaining=" + avSyncHeaderBytesRemaining);
+            if (writeSize < 0) {
+                bytesUntilNextAvSync = 0;
+                return writeSize;
+            }
+            if (writeSize < avSyncHeaderBytesRemaining) {
+                return 0;
+            }
+        }
+        Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + avSyncHeader.remaining() + " writeNonBlocking=" + avSyncHeaderBytesRemaining);
+
+        int writeSize = writeNonBlocking(outputBuffer, outputBuffer.remaining());
+        if (writeSize < 0) {
+            bytesUntilNextAvSync = 0;
+            return writeSize;
+        }
+        bytesUntilNextAvSync -= writeSize;
+        return writeSize;
     }
 
     public void pause() {
@@ -69,6 +117,7 @@ public class Audio{
         attributes = new AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
                 .setUsage(AudioAttributes.USAGE_MEDIA)
+//                .setFlags(AudioAttributes.FLAG_HW_AV_SYNC)
                 .build();
     }
 

@@ -35,7 +35,7 @@ public class AudioCodec extends Codec implements Clock{
         if (outputIndex >= 0) {
             ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
             if (outputBuffer != null) {
-                audio.write(outputBuffer);
+                audio.write(outputBuffer, presentationTimeUs);
                 codec.releaseOutputBuffer(outputIndex, false);
                 Log.i(TAG, "releaseOutputBuffer presentationTimeUs=" + presentationTimeUs);
             }
