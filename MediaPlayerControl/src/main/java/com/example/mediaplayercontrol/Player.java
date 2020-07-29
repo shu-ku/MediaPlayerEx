@@ -14,19 +14,27 @@ import java.util.Queue;
 
 public class Player {
     private final static String TAG = "Player";
-    private String path = "";
-    private SurfaceHolder surfaceHolder;
     private Extractor extractor;
     private Format formats[];
     private SampleQueue sampleQueue;
+
+    // https://developer.android.com/reference/android/media/MediaPlayer
+    private int mPlayerState = 0;
+    private final int IDLE = 0;
+    private final int INITIALIZED = 1;
+    private final int PREPARED = 2;
+    private final int STARTED = 3;
+    private final int PLAYBACK_COMPLETED = 4;
+    private final int STOPPED = 5;
+    private final int PAUSED = 6;
+    private final int END = 7;
+    private final int ERROR = 8;
 
     public Player() {
 
     }
 
     public void prepare(String path, SurfaceHolder surfaceHolder){
-        this.path = path;
-        this.surfaceHolder = surfaceHolder;
         extractor = new Extractor();
         formats = new Format[2];
         formats[0] = new Format();
@@ -78,6 +86,10 @@ public class Player {
             }
         });
         thread.start();
+    }
+
+    public void seekTo(int mSec) {
+        Log.i(TAG, "seekTo(" + mSec + ")");
     }
 
     public void pause() {

@@ -18,8 +18,8 @@
         android:id="@+id/playback_position"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="right"
-        android:textSize="30dp">
+        android:gravity="end"
+        android:textSize="30sp">
     </TextView>
 
     <LinearLayout

@@ -13,19 +13,17 @@ import java.util.Queue;
 
 public class VideoCodec extends Codec{
     private final String TAG = "VideoCodec";
-    private SurfaceHolder surfaceHolder;
     private Clock clock;
 
     @Override
     public void prepare(Format format, SurfaceHolder sh, SampleQueue sampleQueue) {
         super.prepare(format, null, sampleQueue);
-        surfaceHolder = sh;
         try {
             codec = MediaCodec.createDecoderByType(format.mimeType);
             Log.i(TAG, "Video Tunnel mode:" + RendererConfiguration.getInstance().getTunnelingAudioSessionId());
             format.format.setInteger(MediaFormat.KEY_AUDIO_SESSION_ID,
                     RendererConfiguration.getInstance().getTunnelingAudioSessionId());
-            codec.configure(format.format, surfaceHolder.getSurface(), null, 0);
+            codec.configure(format.format, sh.getSurface(), null, 0);
             codec.start();
         } catch (IOException e) {
             e.printStackTrace();

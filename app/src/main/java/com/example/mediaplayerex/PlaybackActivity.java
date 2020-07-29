@@ -85,6 +85,13 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         }
     }
 
+    public void button_seek() {
+        if (isPlayer && readExternalStoragePermission) {
+            int mSec = 1000;
+            mPlayer.seekTo(mSec);
+        }
+    }
+
     private View.OnClickListener buttonClick = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -110,6 +117,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                     break;
                 case R.id.playback_next:
                     Log.d(TAG,"next, Perform action on click");
+                    button_seek();
                     break;
             }
         }

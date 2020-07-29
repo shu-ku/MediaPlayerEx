@@ -14,6 +14,7 @@ public class AudioCodec extends Codec implements Clock{
 
     @Override
     public void prepare(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
+        Log.i(TAG, "prepare");
         super.prepare(format, null, sampleQueue);
         audio = new Audio();
         audio.prepare(format);
@@ -32,7 +33,7 @@ public class AudioCodec extends Codec implements Clock{
         outputIndex = codec.dequeueOutputBuffer(info, 0);
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
         getCurrentPosition();
-        if (outputIndex >= 0) {
+        if (outputIndex >= 0 && audio != null) {
             ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
             if (outputBuffer != null) {
                 audio.write(outputBuffer, presentationTimeUs);

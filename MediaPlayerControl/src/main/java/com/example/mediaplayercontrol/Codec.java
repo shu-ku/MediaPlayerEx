@@ -2,12 +2,9 @@ package com.example.mediaplayercontrol;
 
 import android.media.MediaCodec;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Queue;
 
 public class Codec extends Thread{
     private final String TAG = "Codec";
@@ -36,6 +33,7 @@ public class Codec extends Thread{
     public void run() {
         boolean result = false;
         ByteBuffer inputBuffer = null;
+        int count = 0;
         while (true) {
             if (sampleQueue.size() > 0 && sampleQueue.checkCodec(format.trackIndex)) {
                 int inputIndex = codec.dequeueInputBuffer(10);
@@ -48,19 +46,21 @@ public class Codec extends Thread{
                         inputBuffer.put(sampleHolder.inputBuffer.array(), 0, sampleHolder.inputBuffer.limit());
                         codec.queueInputBuffer(inputIndex, 0, sampleHolder.inputBuffer.limit(), presentationTimeUs, 0);
                     }
+                    result = processOutputBuffer();
                 }
             } else {
                 try {
                     Thread.sleep(10); // 0.01sec sleep
+                    count++;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            result = processOutputBuffer();
         }
     }
 
     public void release() {
+        Log.i(TAG, "release");
         codec.stop();
         codec.release();
         codec = null;

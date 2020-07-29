@@ -4,12 +4,9 @@ import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.media.MediaFormat;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class Audio{
     private final String TAG = "AudioTrack";
@@ -29,9 +26,9 @@ public class Audio{
 
     public long getCurrentPosition() {
         if (mAudioTrack != null) {
-            long currentPosition = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000);
-            Log.i(TAG, " playbackHeadPosition=" + currentPosition);
-            return currentPosition;
+            long currentPositionUs = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000);
+            Log.i(TAG, "currentPositionUs=" + currentPositionUs);
+            return currentPositionUs;
         }
         return 0L;
     }
@@ -51,38 +48,7 @@ public class Audio{
     }
 
     public int writeTunnel(ByteBuffer outputBuffer, long presentationTimeUs) {
-        if (avSyncHeader == null) {
-            avSyncHeader = ByteBuffer.allocate(16);
-            avSyncHeader.order(ByteOrder.BIG_ENDIAN);
-            avSyncHeader.putInt(0x55550001);
-        }
-        if (bytesUntilNextAvSync == 0) {
-            avSyncHeader.putInt(4, outputBuffer.remaining());
-            avSyncHeader.putLong(8, presentationTimeUs * 1000);
-            avSyncHeader.position(0);
-            bytesUntilNextAvSync = outputBuffer.remaining();
-        }
-        int avSyncHeaderBytesRemaining = avSyncHeader.remaining();
-        if (avSyncHeaderBytesRemaining > 0) {
-            int writeSize = mAudioTrack.write(avSyncHeader, avSyncHeader.remaining(), AudioTrack.WRITE_NON_BLOCKING);
-            Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + avSyncHeader.remaining() + " writeSize=" + writeSize + " avSyncHeaderBytesRemaining=" + avSyncHeaderBytesRemaining);
-            if (writeSize < 0) {
-                bytesUntilNextAvSync = 0;
-                return writeSize;
-            }
-            if (writeSize < avSyncHeaderBytesRemaining) {
-                return 0;
-            }
-        }
-        Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + avSyncHeader.remaining() + " writeNonBlocking=" + avSyncHeaderBytesRemaining);
-
-        int writeSize = writeNonBlocking(outputBuffer, outputBuffer.remaining());
-        if (writeSize < 0) {
-            bytesUntilNextAvSync = 0;
-            return writeSize;
-        }
-        bytesUntilNextAvSync -= writeSize;
-        return writeSize;
+        return mAudioTrack.write(outputBuffer, outputBuffer.remaining(), AudioTrack.WRITE_NON_BLOCKING, presentationTimeUs);
     }
 
     public void pause() {
