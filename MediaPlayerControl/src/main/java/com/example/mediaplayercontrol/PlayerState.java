@@ -8,14 +8,15 @@ public class PlayerState {
     private static final String TAG = "PlayerState";
     private static State state = State.Idle;
 
-    public State getPlayerState() {
+    public static State getPlayerState() {
         return state;
     }
-
     /**
-     * Change state if true is returned;
+     * state machine
+     * Change state if true is returned.
+     * https://developer.android.com/reference/android/media/MediaPlayer
      */
-    private enum State {
+    public enum State {
         Idle {
             @Override
             public boolean checkSetDataSource() {
@@ -86,7 +87,6 @@ public class PlayerState {
             Log.i(TAG, "checkSetDataSource return false");
             return false;
         }
-
         public boolean checkPrepare() {
             Log.i(TAG, "checkPrepare return false");
             return false;

@@ -12,53 +12,63 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import static com.example.mediaplayercontrol.PlayerState.State.Idle;
+import static com.example.mediaplayercontrol.PlayerState.State.Initialized;
+import static com.example.mediaplayercontrol.PlayerState.State.Prepared;
+import static com.example.mediaplayercontrol.PlayerState.State.Started;
+import static com.example.mediaplayercontrol.PlayerState.State.PlaybackCompleted;
+import static com.example.mediaplayercontrol.PlayerState.State.Paused;
+import static com.example.mediaplayercontrol.PlayerState.State.Stopped;
+import static com.example.mediaplayercontrol.PlayerState.State.End;
+import static com.example.mediaplayercontrol.PlayerState.State.Error;
+import static com.example.mediaplayercontrol.PlayerState.State;
+
 public class Player {
     private final static String TAG = "Player";
     private Extractor extractor;
-    private Format formats[];
+    private Format[] formats;
     private SampleQueue sampleQueue;
-
-    // https://developer.android.com/reference/android/media/MediaPlayer
-    private int mPlayerState = 0;
-    private final int IDLE = 0;
-    private final int INITIALIZED = 1;
-    private final int PREPARED = 2;
-    private final int STARTED = 3;
-    private final int PLAYBACK_COMPLETED = 4;
-    private final int STOPPED = 5;
-    private final int PAUSED = 6;
-    private final int END = 7;
-    private final int ERROR = 8;
+    private State state = Idle;
 
     public Player() {
-
+        transitState(Idle);
     }
 
     public void prepare(String path, SurfaceHolder surfaceHolder){
+        sampleQueue = new SampleQueue();
         extractor = new Extractor();
         formats = new Format[2];
         formats[0] = new Format();
         formats[1] = new Format();
-        sampleQueue = new SampleQueue();
-        extractor.prepare(path, formats, sampleQueue);
-        Clock clock = null;
 
-        // audio prepare
-        for (Format format: formats) {
-            if (!format.isVideo) {
-                format.codec = new AudioCodec();
-                format.codec.prepare(format, surfaceHolder, sampleQueue);
-                clock = (Clock) format.codec;
-            }
+        if (state.checkSetDataSource()) {
+            Log.i(TAG, "path=" + path);
+            extractor.setDataSource(path);
+            transitState();
         }
 
-        // video prepare
-        for (Format format: formats) {
-            if (format.isVideo) {
-                format.codec = new VideoCodec();
-                format.codec.prepare(format, surfaceHolder, sampleQueue);
-                format.codec.setClock(clock);
+        if (state.checkPrepare()) {
+            extractor.prepare(formats, sampleQueue);
+            Clock clock = null;
+
+            // audio prepare
+            for (Format format : formats) {
+                if (!format.isVideo) {
+                    format.codec = new AudioCodec();
+                    format.codec.prepare(format, surfaceHolder, sampleQueue);
+                    clock = (Clock) format.codec;
+                }
             }
+
+            // video prepare
+            for (Format format : formats) {
+                if (format.isVideo) {
+                    format.codec = new VideoCodec();
+                    format.codec.prepare(format, surfaceHolder, sampleQueue);
+                    format.codec.setClock(clock);
+                }
+            }
+            transitState();
         }
     }
 
@@ -99,5 +109,15 @@ public class Player {
                 format.codec.pause();
             }
         }
+    }
+
+    public void transitState(State state) {
+        Log.i(TAG, "transitState: " + this.state + " -> " + state);
+        this.state = state;
+    }
+
+    public void transitState() {
+        Log.i(TAG, "transitState: " + this.state + " -> " + PlayerState.getPlayerState());
+        this.state = PlayerState.getPlayerState();
     }
 }

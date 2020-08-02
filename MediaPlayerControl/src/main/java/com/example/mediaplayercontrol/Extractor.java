@@ -24,12 +24,15 @@ public class Extractor extends Thread{
         extractor = new MediaExtractor();
     }
 
-    public void prepare(String path, Format[] format, SampleQueue sampleQueue) {
+    public void setDataSource(String path) {
         try {
             extractor.setDataSource(path);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void prepare(Format[] format, SampleQueue sampleQueue) {
         this.sampleQueue = sampleQueue;
         int tracks = extractor.getTrackCount();
         MediaFormat mediaFormat;
