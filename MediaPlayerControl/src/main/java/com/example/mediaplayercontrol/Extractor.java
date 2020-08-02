@@ -1,15 +1,11 @@
 package com.example.mediaplayercontrol;
 
-import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
-import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Queue;
 
 public class Extractor extends Thread{
     private final static String TAG = "Extractor";
@@ -19,9 +15,15 @@ public class Extractor extends Thread{
 
     long minPrime;
     private ByteBuffer inputBuffer;
+    private int state = 0;
+
+    private final static int IDLE = 0;
+    private final static int START = 1;
+    private final static int PAUSE = 2;
 
     public Extractor() {
         extractor = new MediaExtractor();
+        state = IDLE;
     }
 
     public void setDataSource(String path) {
@@ -65,36 +67,55 @@ public class Extractor extends Thread{
                 break;
             }
         }
+        state = START;
     }
 
     public void run() {
         boolean inputEOS = false;
         while (!inputEOS) {
-            ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
-            long presentationTimeUs = 0;
-            int bufferSize = extractor.readSampleData(inputBuffer, 0);
-            if (bufferSize >= 0) {
-                presentationTimeUs = extractor.getSampleTime();
-                Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
-                sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
-                extractor.advance();
-                if (sampleQueue.size() > 1000) {
-                    try {
-                        Thread.sleep(100); // 0.01sec sleep
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            if (state == START) {
+                ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
+                long presentationTimeUs = 0;
+                int bufferSize = extractor.readSampleData(inputBuffer, 0);
+                if (bufferSize >= 0) {
+                    presentationTimeUs = extractor.getSampleTime();
+                    Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
+                    sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
+                    extractor.advance();
+                    if (sampleQueue.size() > 1000) {
+                        try {
+                            Thread.sleep(100); // 0.01sec sleep
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
+                } else {
+                    inputEOS = true;
                 }
             } else {
-                inputEOS = true;
+                try {
+                    Thread.sleep(100); // 0.01sec sleep
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
+        release();
+    }
+
+    public void release() {
         extractor.release();
         extractor = null;
         sampleQueue.setExtractorEOS(true);
     }
 
-    public void seekTo(long timeUs) {
-        extractor.seekTo(timeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+    public void pause() {
+        state = PAUSE;
+    }
+
+    public void seekTo(long seekPositionUs) {
+        sampleQueue.clear();
+        extractor.seekTo(seekPositionUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        state = START;
     }
 }

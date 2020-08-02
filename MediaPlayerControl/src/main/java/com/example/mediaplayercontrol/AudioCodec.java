@@ -60,4 +60,10 @@ public class AudioCodec extends Codec implements Clock{
             audio.pause();
         }
     };
+
+    public void seekTo(long seekPositionUs) {
+        if (audio != null) {
+            audio.seekTo(seekPositionUs);
+        }
+    }
 }

@@ -19,6 +19,7 @@ public class Audio{
     private boolean first;
     private ByteBuffer avSyncHeader;
     private int bytesUntilNextAvSync = 0;
+    private long seekPositionUs = 0;
 
     public Audio () {
 
@@ -26,11 +27,19 @@ public class Audio{
 
     public long getCurrentPosition() {
         if (mAudioTrack != null) {
-            long currentPositionUs = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000);
+            long currentPositionUs = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000) + seekPositionUs;
             Log.i(TAG, "currentPositionUs=" + currentPositionUs);
             return currentPositionUs;
         }
         return 0L;
+    }
+
+    public void seekTo(long seekPositionUs) {
+        if (mAudioTrack != null) {
+            mAudioTrack.flush();
+            this.seekPositionUs = seekPositionUs;
+            mAudioTrack.play();
+        }
     }
 
     public void write(ByteBuffer outputBuffer, long presentationTimeUs) {
@@ -74,6 +83,7 @@ public class Audio{
                 .setAudioAttributes(attributes)
                 .setAudioFormat(audioFormat)
                 .setBufferSizeInBytes(getBufferSizeInBytes(channelOut))
+                .setTransferMode(AudioTrack.MODE_STREAM)
                 .build();
         mAudioTrack.play();
         RendererConfiguration.getInstance().setTunnelingAudioSessionId(mAudioTrack.getAudioSessionId());

@@ -87,8 +87,8 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
 
     public void button_seek() {
         if (isPlayer && readExternalStoragePermission) {
-            int mSec = 10_000; //10sec
-            mPlayer.seekTo(mSec);
+            long seekPositionUs = 10_000; //10sec
+            mPlayer.seekTo(seekPositionUs);
         }
     }
 

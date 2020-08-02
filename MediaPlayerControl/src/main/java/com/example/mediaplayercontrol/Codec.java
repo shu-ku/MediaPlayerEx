@@ -6,6 +6,8 @@ import android.view.SurfaceHolder;
 
 import java.nio.ByteBuffer;
 
+import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
+
 public class Codec extends Thread{
     private final String TAG = "Codec";
     protected Format format;
@@ -48,6 +50,7 @@ public class Codec extends Thread{
                     }
                     result = processOutputBuffer();
                 }
+//                codec.queueInputBuffer(inputIndex, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
             } else {
                 try {
                     Thread.sleep(10); // 0.01sec sleep
@@ -67,10 +70,13 @@ public class Codec extends Thread{
     }
 
     public void setClock(Clock clock) {
-    };
+    }
 
     public void pause() {
-    };
+    }
+
+    public void seekTo(long seekPositionUs) {
+    }
 
     public boolean isTunnelingEnabled() {
 //        return RendererConfiguration.getInstance().isTunneling();

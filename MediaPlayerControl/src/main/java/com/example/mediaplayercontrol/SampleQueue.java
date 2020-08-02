@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Queue;
 
 public class SampleQueue {
-    private final Queue<SampleHolder> sampleHolders = new ArrayDeque<>();
+    private final Queue<SampleHolder> sampleQueue = new ArrayDeque<>();
     private boolean extractorEOS = false;
 
     public SampleQueue() {
@@ -13,19 +13,19 @@ public class SampleQueue {
     }
 
     public synchronized void add(SampleHolder sampleHolder) {
-        sampleHolders.add(sampleHolder);
+        sampleQueue.add(sampleHolder);
     }
 
     public synchronized SampleHolder poll() {
-        return sampleHolders.poll();
+        return sampleQueue.poll();
     }
 
     public synchronized int size() {
-        return sampleHolders.size();
+        return sampleQueue.size();
     }
 
     public synchronized boolean checkCodec(int trackIndex) {
-        return Objects.requireNonNull(sampleHolders.peek()).trackIndex == trackIndex;
+        return Objects.requireNonNull(sampleQueue.peek()).trackIndex == trackIndex;
     }
 
     public synchronized boolean isExtractorEOS() {
@@ -34,5 +34,9 @@ public class SampleQueue {
 
     public synchronized void setExtractorEOS(boolean extractorEOS) {
         this.extractorEOS = extractorEOS;
+    }
+
+    public synchronized void clear(){
+        sampleQueue.clear();
     }
 }

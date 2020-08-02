@@ -8,6 +8,7 @@ public class PlayerState {
     private static final String TAG = "PlayerState";
     private static State state = State.Idle;
 
+    // state　
     public static State getPlayerState() {
         return state;
     }
@@ -45,6 +46,10 @@ public class PlayerState {
                 return false;
             }
             @Override
+            public boolean checkSeekTo() {
+                return true;
+            }
+            @Override
             public boolean checkStop() {
                 state = State.Stopped;
                 return true;
@@ -66,6 +71,10 @@ public class PlayerState {
             @Override
             public boolean checkStart() {
                 state = State.Started;
+                return true;
+            }
+            @Override
+            public boolean checkSeekTo() {
                 return true;
             }
             @Override
