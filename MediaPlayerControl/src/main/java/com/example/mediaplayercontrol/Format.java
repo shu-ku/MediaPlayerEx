@@ -9,6 +9,7 @@ public class Format {
     public Codec codec;
     public boolean isVideo;
     public int trackIndex;
+    public long durationUs;
 
     public Format() {
 

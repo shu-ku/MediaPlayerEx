@@ -37,6 +37,7 @@ public class Extractor extends Thread{
         int tracks = extractor.getTrackCount();
         MediaFormat mediaFormat;
         String mimeType;
+        long durationUs;
         for (int i = 0; i < tracks; ++i) {
             mediaFormat = extractor.getTrackFormat(i);
             mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
@@ -53,12 +54,14 @@ public class Extractor extends Thread{
         for (int i = 0; i < tracks; ++i) {
             mediaFormat = extractor.getTrackFormat(i);
             mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
+            durationUs = mediaFormat.getLong(MediaFormat.KEY_DURATION);
             if (mimeType.startsWith("audio/")) {
                 extractor.selectTrack(i);
                 format[1].format = mediaFormat;
                 format[1].mimeType = mimeType;
                 format[1].isVideo = false;
                 format[1].trackIndex = i;
+                format[1].durationUs = durationUs;
                 break;
             }
         }
@@ -89,5 +92,9 @@ public class Extractor extends Thread{
         extractor.release();
         extractor = null;
         sampleQueue.setExtractorEOS(true);
+    }
+
+    public void seekTo(long timeUs) {
+        extractor.seekTo(timeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
     }
 }
