@@ -16,16 +16,15 @@ public class SampleQueue {
         sampleQueue.add(sampleHolder);
     }
 
-    public synchronized SampleHolder poll() {
-        return sampleQueue.poll();
+    public synchronized SampleHolder poll(int trackIndex) {
+        if (sampleQueue.size() > 0 && Objects.requireNonNull(sampleQueue.peek()).trackIndex == trackIndex) {
+            return sampleQueue.poll();
+        }
+        return null;
     }
 
     public synchronized int size() {
         return sampleQueue.size();
-    }
-
-    public synchronized boolean checkCodec(int trackIndex) {
-        return Objects.requireNonNull(sampleQueue.peek()).trackIndex == trackIndex;
     }
 
     public synchronized boolean isExtractorEOS() {
