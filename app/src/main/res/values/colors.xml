@@ -8,4 +8,6 @@
 
     <color name="colorPrimary_old">#6200EE</color>
     <color name="colorPrimaryDark_old">#3700B3</color>
+
+    <color name="blue_grey_400">#dcdcdc</color>
 </resources>
