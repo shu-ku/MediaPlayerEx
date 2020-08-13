@@ -101,23 +101,23 @@ public class Player {
     }
 
     public void seekTo(long seekPositionUs) {
-        Log.i(TAG, "seekTo(" + seekPositionUs + ")");
+        Log.i(TAG, "seekTo(" + seekPositionUs + ") -->");
         long durationUs = getDurationUs();
-        long currentPositionUs = clock.getCurrentPosition();
-        long seekTimeUs = seekPositionUs * 1000;
+        long currentPositionUs = clock.getCurrentPositionUs();
         Log.i(TAG, "seekTo(" + seekPositionUs + ")" +
                 " durationUs=" + String.format("%,d", durationUs) +
                 " currentPositionUs=" + String.format("%,d", currentPositionUs));
         if (state.checkSeekTo()) {
-            seekTimeUs = 95_000_000;
             extractor.pause();
-            extractor.seekTo(seekTimeUs);
-            for (Format format : formats) {
-                format.codec.pause();
-                format.codec.seekTo(seekTimeUs);
+            if (extractor.seekTo(seekPositionUs)) {
+                for (Format format : formats) {
+                    format.codec.pause();
+                    format.codec.seekTo(seekPositionUs);
+                }
+                transitState();
             }
-            transitState();
         }
+        Log.i(TAG, "seekTo(" + seekPositionUs + ") <--");
     }
 
     public void pause() {
@@ -137,6 +137,18 @@ public class Player {
             return formats[1].durationUs;
         }
         return 0L;
+    }
+
+    public int getDurationMs() {
+        return (int)(getDurationUs() / 1000);
+    }
+
+    public int getCurrentPositionMs() {
+        return (int)(clock.getCurrentPositionUs() / 1000);
+    }
+
+    public long getCurrentPositionUs() {
+        return clock.getCurrentPositionUs();
     }
 
     public void transitState(State state) {

@@ -76,6 +76,7 @@ public class Extractor extends Thread{
             if (state == START) {
                 ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
                 long presentationTimeUs = 0;
+                // IllegalArgumentException
                 int bufferSize = extractor.readSampleData(inputBuffer, 0);
                 if (bufferSize >= 0) {
                     presentationTimeUs = extractor.getSampleTime();
@@ -113,9 +114,16 @@ public class Extractor extends Thread{
         state = PAUSE;
     }
 
-    public void seekTo(long seekPositionUs) {
-        sampleQueue.clear();
-        extractor.seekTo(seekPositionUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-        state = START;
+    public boolean seekTo(long seekPositionUs) {
+        try {
+            sampleQueue.clear();
+            extractor.seekTo(seekPositionUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+            state = START;
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            state = START;
+            return false;
+        }
     }
 }

@@ -25,7 +25,7 @@ public class Audio{
 
     }
 
-    public long getCurrentPosition() {
+    public long getCurrentPositionUs() {
         if (mAudioTrack != null) {
             long currentPositionUs = (long)((float)mAudioTrack.getPlaybackHeadPosition() / (float)(mSampleRate/1000) * 1000) + seekPositionUs;
             Log.i(TAG, "currentPositionUs=" + currentPositionUs);

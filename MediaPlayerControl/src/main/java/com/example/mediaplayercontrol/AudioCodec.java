@@ -32,7 +32,6 @@ public class AudioCodec extends Codec implements Clock{
         info = new MediaCodec.BufferInfo();
         outputIndex = codec.dequeueOutputBuffer(info, 0);
         Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
-        getCurrentPosition();
         if (outputIndex >= 0 && audio != null) {
             ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
             if (outputBuffer != null) {
@@ -48,9 +47,9 @@ public class AudioCodec extends Codec implements Clock{
         return true;
     }
 
-    public long getCurrentPosition() {
+    public long getCurrentPositionUs() {
         if (audio != null) {
-            return audio.getCurrentPosition();
+            return audio.getCurrentPositionUs();
         }
         return 0L;
     }
@@ -59,7 +58,7 @@ public class AudioCodec extends Codec implements Clock{
         if (audio != null) {
             audio.pause();
         }
-    };
+    }
 
     public void seekTo(long seekPositionUs) {
         if (audio != null) {

@@ -54,7 +54,7 @@ public class VideoCodec extends Codec{
     };
 
     private void releaseOutputBuffer(int outputIndex) {
-        long currentPosition = clock.getCurrentPosition();
+        long currentPosition = clock.getCurrentPositionUs();
         long differenceTime =  presentationTimeUs - currentPosition;
         Log.i(TAG, "releaseOutputBuffer" +
                 " presentationTimeUs=" + presentationTimeUs +
