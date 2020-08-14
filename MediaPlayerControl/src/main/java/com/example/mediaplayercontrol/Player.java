@@ -95,9 +95,26 @@ public class Player implements Codec.Callback {
         Log.i(TAG, "seekTo(" + seekPositionUs + ") <--");
     }
 
+    public void resume() {
+        Log.i(TAG, "resume()");
+        if (state.checkStart()) {
+            if (state.checkSeekTo()) {
+                long seekPositionUs = clock.getCurrentPositionUs();
+                if (extractor.seekTo(seekPositionUs)) {
+                    for (Format format : formats) {
+//                        format.codec.flush();
+                        format.codec.seekTo(seekPositionUs);
+                    }
+                    transitState();
+                }
+            }
+        }
+    }
+
     public void pause() {
         Log.i(TAG, "pause()");
         if (state.checkPause()) {
+            extractor.pause();
             for (Format format : formats) {
                 if (!format.isVideo) {
                     format.codec.pause();

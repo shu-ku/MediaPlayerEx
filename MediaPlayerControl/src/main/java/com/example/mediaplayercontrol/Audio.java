@@ -38,6 +38,13 @@ public class Audio{
         }
     }
 
+    public void play() {
+        Log.i(TAG, "play()");
+        if (mAudioTrack != null) {
+            mAudioTrack.play();
+        }
+    }
+
     public void write(ByteBuffer outputBuffer, long presentationTimeUs) {
         if (RendererConfiguration.getInstance().isTunneling()) {
 //            Log.i(TAG, "writeTunnel presentationTimeUs=" + presentationTimeUs + " size=" + outputBuffer.remaining());

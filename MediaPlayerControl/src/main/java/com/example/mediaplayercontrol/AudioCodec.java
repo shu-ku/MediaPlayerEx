@@ -61,8 +61,17 @@ public class AudioCodec extends Codec implements Clock{
     }
 
     public void pause() {
+        super.pause();
+        Log.i(TAG, "pause()");
         if (audio != null) {
             audio.pause();
+        }
+    }
+
+    public void play() {
+        Log.i(TAG, "play()");
+        if (audio != null) {
+            audio.play();
         }
     }
 

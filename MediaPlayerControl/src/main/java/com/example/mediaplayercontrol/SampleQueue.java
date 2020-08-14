@@ -1,5 +1,7 @@
 package com.example.mediaplayercontrol;
 
+import android.util.Log;
+
 import java.util.ArrayDeque;
 import java.util.Objects;
 import java.util.Queue;
@@ -18,6 +20,9 @@ public class SampleQueue {
 
     public synchronized SampleHolder poll(int trackIndex) {
         if (sampleQueue.size() > 0 && Objects.requireNonNull(sampleQueue.peek()).trackIndex == trackIndex) {
+            Log.i("SampleQueue",
+                    "trackIndex=" + trackIndex +
+                            " SampleQueue.trackIndex" + Objects.requireNonNull(sampleQueue.peek()).trackIndex);
             return sampleQueue.poll();
         }
         return null;

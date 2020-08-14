@@ -58,7 +58,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         holder.addCallback(this);
 
         findViewById(R.id.playback_start).setOnClickListener(buttonClick);
-        findViewById(R.id.playback_stop).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_pause).setOnClickListener(buttonClick);
         findViewById(R.id.playback_permission).setOnClickListener(buttonClick);
         findViewById(R.id.playback_prev).setOnClickListener(buttonClick);
         findViewById(R.id.playback_resume).setOnClickListener(buttonClick);
@@ -105,9 +105,15 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         }
     }
 
-    public void button_stop() {
+    public void button_pause() {
         if (isPlayer) {
             mPlayer.pause();
+        }
+    }
+
+    public void button_resume() {
+        if (isPlayer) {
+            mPlayer.resume();
         }
     }
 
@@ -152,9 +158,9 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                     button_start();
                     Log.d(TAG,"start, end");
                     break;
-                case R.id.playback_stop:
-                    Log.d(TAG,"stop, Perform action on click");
-                    button_stop();
+                case R.id.playback_pause:
+                    Log.d(TAG,"pause, Perform action on click");
+                    button_pause();
                     break;
                 case R.id.playback_permission:
                     Log.d(TAG,"permission, Perform action on click");
@@ -166,6 +172,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                     break;
                 case R.id.playback_resume:
                     Log.d(TAG,"resume, Perform action on click");
+                    button_resume();
                     break;
                 case R.id.playback_next:
                     Log.d(TAG,"next, Perform action on click");
@@ -267,7 +274,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         });
         seekBar.setMax(0);
         seekBar.setMin(0);
-        seekBar.setProgress(progressValue);
+//        seekBar.setProgress(progressValue);
         setTextViewCurrentPosition(progressValue);
     }
 
@@ -277,7 +284,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
 
     public void setTextViewCurrentPosition(int progressValue) {
         textViewCurrentPosition.setText(progressFormat(progressValue));
-        Log.d(TAG, "setProgressValue, progressValue=" + progressValue);
+        Log.d(TAG, "setTextViewCurrentPosition, progressValue=" + progressValue);
     }
 
     @SuppressLint("DefaultLocale")

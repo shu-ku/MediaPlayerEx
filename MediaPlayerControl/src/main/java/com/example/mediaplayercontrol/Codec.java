@@ -50,7 +50,8 @@ public class Codec extends Thread {
             }
         }
         Log.i(TAG, "playbackComplete" +
-                " sampleQueue.isExtractorEOS()" + sampleQueue.isExtractorEOS() +
+                " isVideo=" + format.isVideo +
+                " sampleQueue.isExtractorEOS()=" + sampleQueue.isExtractorEOS() +
                 " sampleQueue.size()" + sampleQueue.size());
 //        codec.queueInputBuffer(0, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
     }
@@ -67,17 +68,19 @@ public class Codec extends Thread {
             if (inputIndex == NOT_SET_INDEX) {
                 inputIndex = codec.dequeueInputBuffer(10);
                 if (inputIndex < 0) {
+                    Log.i(TAG, "isVideo=" + format.isVideo + " inputIndex full");
                     return false;
                 }
             }
             if (inputBuffer == NOT_SET_BUFFER) {
                 inputBuffer = codec.getInputBuffer(inputIndex);
                 if (inputBuffer == null) {
+                    Log.i(TAG, "isVideo=" + format.isVideo + " inputBuffer full");
                     return false;
                 }
             }
             presentationTimeUs = sampleHolder.presentationTimeUs;
-            Log.i(TAG, "queueInputBuffer presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " isVideo=" + format.isVideo);
+            Log.i(TAG, "queueInputBuffer" + " isVideo=" + format.isVideo +  " presentationTimeUs=" + String.format("%,d", presentationTimeUs));
             inputBuffer.put(sampleHolder.inputBuffer.array(), 0, sampleHolder.inputBuffer.limit());
             codec.queueInputBuffer(inputIndex, 0, sampleHolder.inputBuffer.limit(), presentationTimeUs, 0);
             inputIndex = NOT_SET_INDEX;
@@ -100,9 +103,17 @@ public class Codec extends Thread {
     }
 
     public void pause() {
+        codec.flush();
+    }
+
+    public void play() {
     }
 
     public void seekTo(long seekPositionUs) {
+    }
+
+    public void flush() {
+//        codec.flush();
     }
 
     public boolean isTunnelingEnabled() {

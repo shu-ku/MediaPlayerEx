@@ -79,8 +79,10 @@ public class Extractor extends Thread{
                 int bufferSize = extractor.readSampleData(inputBuffer, 0);
                 if (bufferSize >= 0) {
                     presentationTimeUs = extractor.getSampleTime();
-                    Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
-                    sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
+                    int trackIndex = extractor.getSampleTrackIndex();
+                    Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) +
+                            " sampleQueue.size=" + sampleQueue.size() + " trackIndex=" + trackIndex);
+                    sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, trackIndex));
                     extractor.advance();
                 } else {
                     inputEOS = true;
@@ -106,6 +108,7 @@ public class Extractor extends Thread{
 
     public void pause() {
         state = PAUSE;
+        sampleQueue.clear();
     }
 
     public boolean seekTo(long seekPositionUs) {

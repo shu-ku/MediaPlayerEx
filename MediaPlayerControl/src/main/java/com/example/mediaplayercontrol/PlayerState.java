@@ -43,7 +43,7 @@ public class PlayerState {
             @Override
             public boolean checkPause() {
                 state = State.Paused;
-                return false;
+                return true;
             }
             @Override
             public boolean checkSeekTo() {
