@@ -13,6 +13,12 @@ public class AudioCodec extends Codec implements Clock{
     private long baseNanoTime;
 
     @Override
+    public void run() {
+        super.run();
+        playbackCompleteCallback.playbackComplete();
+    }
+
+    @Override
     public void prepare(Format format, SurfaceHolder surfaceHolder, SampleQueue sampleQueue) {
         Log.i(TAG, "prepare");
         super.prepare(format, null, sampleQueue);

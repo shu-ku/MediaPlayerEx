@@ -116,6 +116,10 @@ public class PlayerState {
             Log.i(TAG, "checkStop return false");
             return false;
         }
+        public boolean checkRelease() {
+            Log.i(TAG, "checkRelease return true");
+            return true;
+        }
     }
 
 }

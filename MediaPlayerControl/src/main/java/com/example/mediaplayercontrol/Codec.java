@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
 
-public class Codec extends Thread{
+public class Codec extends Thread {
     private final String TAG = "Codec";
     protected Format format;
     protected MediaCodec codec;
@@ -19,6 +19,7 @@ public class Codec extends Thread{
     protected SampleHolder sampleHolder;
     private int inputIndex;
     ByteBuffer inputBuffer;
+    protected PlaybackCompleteCallback playbackCompleteCallback;
 
     private final static int NOT_SET_INDEX = -1;
     private final static ByteBuffer NOT_SET_BUFFER = null;
@@ -39,7 +40,7 @@ public class Codec extends Thread{
     public void run() {
         inputIndex = NOT_SET_INDEX;
         inputBuffer = NOT_SET_BUFFER;
-        while (true) {
+        while (!sampleQueue.isExtractorEOS() || sampleQueue.size() != 0) {
             if (!QueueInputBuffer()) {
                 try {
                     Thread.sleep(10); // 0.01sec sleep
@@ -48,9 +49,9 @@ public class Codec extends Thread{
                 }
             }
         }
+//        codec.queueInputBuffer(inputIndex, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
     }
 
-    // codec.queueInputBuffer(inputIndex, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
     public boolean QueueInputBuffer() {
         if (sampleQueue.size() <= 0) {
             return false;
@@ -104,5 +105,14 @@ public class Codec extends Thread{
     public boolean isTunnelingEnabled() {
 //        return RendererConfiguration.getInstance().isTunneling();
         return false;
+    }
+
+    public void setPlaybackCompleteCallback(PlaybackCompleteCallback callback) {
+        Log.i(TAG, "setPlaybackCompleteCallback");
+        playbackCompleteCallback = callback;
+    }
+
+    public static interface PlaybackCompleteCallback {
+        void playbackComplete();
     }
 }
