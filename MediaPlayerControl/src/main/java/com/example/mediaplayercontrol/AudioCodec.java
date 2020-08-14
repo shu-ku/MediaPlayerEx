@@ -71,4 +71,13 @@ public class AudioCodec extends Codec implements Clock{
             audio.seekTo(seekPositionUs);
         }
     }
+
+    public void release() {
+        super.release();
+        Log.i(TAG, "release");
+        audio.release();
+        codec.stop();
+        codec.release();
+        codec = null;
+    }
 }

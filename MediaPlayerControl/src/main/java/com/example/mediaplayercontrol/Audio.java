@@ -15,10 +15,6 @@ public class Audio{
     private AudioFormat audioFormat;
     private MediaFormat format;
     private int mSampleRate;
-    private long pts;
-    private boolean first;
-    private ByteBuffer avSyncHeader;
-    private int bytesUntilNextAvSync = 0;
     private long seekPositionUs = 0;
 
     public Audio () {
@@ -87,6 +83,13 @@ public class Audio{
                 .build();
         mAudioTrack.play();
         RendererConfiguration.getInstance().setTunnelingAudioSessionId(mAudioTrack.getAudioSessionId());
+    }
+
+    public void release() {
+        mAudioTrack.stop();
+        mAudioTrack.flush();
+        mAudioTrack.release();
+        mAudioTrack = null;
     }
 
     private void configAudioAttributes() {

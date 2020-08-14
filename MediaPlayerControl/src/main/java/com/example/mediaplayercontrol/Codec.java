@@ -19,7 +19,7 @@ public class Codec extends Thread {
     protected SampleHolder sampleHolder;
     private int inputIndex;
     ByteBuffer inputBuffer;
-    protected PlaybackCompleteCallback playbackCompleteCallback;
+    protected Callback playbackCompleteCallback;
 
     private final static int NOT_SET_INDEX = -1;
     private final static ByteBuffer NOT_SET_BUFFER = null;
@@ -40,7 +40,7 @@ public class Codec extends Thread {
     public void run() {
         inputIndex = NOT_SET_INDEX;
         inputBuffer = NOT_SET_BUFFER;
-        while (!sampleQueue.isExtractorEOS() || sampleQueue.size() != 0) {
+        while (!sampleQueue.isExtractorEOS() || sampleQueue.size() > 0) {
             if (!QueueInputBuffer()) {
                 try {
                     Thread.sleep(10); // 0.01sec sleep
@@ -49,7 +49,10 @@ public class Codec extends Thread {
                 }
             }
         }
-//        codec.queueInputBuffer(inputIndex, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
+        Log.i(TAG, "playbackComplete" +
+                " sampleQueue.isExtractorEOS()" + sampleQueue.isExtractorEOS() +
+                " sampleQueue.size()" + sampleQueue.size());
+//        codec.queueInputBuffer(0, 0, 0, presentationTimeUs, BUFFER_FLAG_END_OF_STREAM);
     }
 
     public boolean QueueInputBuffer() {
@@ -107,12 +110,12 @@ public class Codec extends Thread {
         return false;
     }
 
-    public void setPlaybackCompleteCallback(PlaybackCompleteCallback callback) {
+    public void setPlaybackCompleteCallback(Callback callback) {
         Log.i(TAG, "setPlaybackCompleteCallback");
         playbackCompleteCallback = callback;
     }
 
-    public static interface PlaybackCompleteCallback {
+    public static interface Callback {
         void playbackComplete();
     }
 }

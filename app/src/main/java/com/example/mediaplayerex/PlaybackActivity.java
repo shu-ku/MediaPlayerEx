@@ -27,7 +27,7 @@ import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.util.ArrayList;
 
-public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder.Callback{
+public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder.Callback, Player.Callback {
     private final static String TAG = "PlaybackActivity";
     private final int REQUEST_PERMISSION = 1000;
     private Player mPlayer;
@@ -96,15 +96,16 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
 
     public void button_start() {
         if (!isPlayer && readExternalStoragePermission) {
+            isPlayer = true;
             mPlayer = new Player();
+            mPlayer.setPlaybackCompleteCallback(this);
             prepare();
             mPlayer.start();
-            isPlayer = true;
         }
     }
 
     public void button_stop() {
-        if (isPlayer && readExternalStoragePermission) {
+        if (isPlayer) {
             mPlayer.pause();
         }
     }
@@ -112,7 +113,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     public void button_next() {
         synchronized (lockObj) {
             Log.i(TAG, "seek button_next");
-            if (isPlayer && readExternalStoragePermission) {
+            if (isPlayer) {
                 long seekPositionUs = mPlayer.getCurrentPositionUs() + 10_000_000L;
                 if (seekPositionUs < durationUs) {
                     mPlayer.seekTo(seekPositionUs);
@@ -287,7 +288,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     private void setCurrentPositionMs() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                while (currentPositionMs < durationMs) {
+                while (isPlayer && currentPositionMs < durationMs) {
                     currentPositionMs = mPlayer.getCurrentPositionMs();
                     setTextViewCurrentPosition(currentPositionMs);
                     seekBar.setProgress(currentPositionMs);
@@ -300,5 +301,13 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
             }
         });
         thread.start();
+    }
+
+    @Override
+    public void playbackComplete() {
+        Log.i(TAG, "playbackComplete");
+        mPlayer.release();
+        isPlayer = false;
+        mPlayer = null;
     }
 }

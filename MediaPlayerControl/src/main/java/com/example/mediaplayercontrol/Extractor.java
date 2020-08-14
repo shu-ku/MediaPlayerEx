@@ -10,16 +10,15 @@ import java.nio.ByteBuffer;
 public class Extractor extends Thread{
     private final static String TAG = "Extractor";
 
-    private MediaExtractor extractor;
-    SampleQueue sampleQueue;
-
-    long minPrime;
-    private ByteBuffer inputBuffer;
-    private int state = 0;
-
     private final static int IDLE = 0;
     private final static int START = 1;
     private final static int PAUSE = 2;
+    private final static int RELEASE = 3;
+
+    private MediaExtractor extractor;
+    private SampleQueue sampleQueue;
+
+    private int state = 0;
 
     public Extractor() {
         extractor = new MediaExtractor();
@@ -73,7 +72,7 @@ public class Extractor extends Thread{
     public void run() {
         boolean inputEOS = false;
         while (!inputEOS) {
-            if (state == START) {
+            if (state == START && sampleQueue.size() < 1000) {
                 ByteBuffer inputBuffer = ByteBuffer.allocate(128 * 1024);
                 long presentationTimeUs = 0;
                 // IllegalArgumentException
@@ -83,31 +82,26 @@ public class Extractor extends Thread{
                     Log.i(TAG, "presentationTimeUs=" + String.format("%,d", presentationTimeUs) + " sampleQueue.size=" + sampleQueue.size());
                     sampleQueue.add(new SampleHolder(inputBuffer, presentationTimeUs, extractor.getSampleTrackIndex()));
                     extractor.advance();
-                    if (sampleQueue.size() > 1000) {
-                        try {
-                            Thread.sleep(100); // 0.01sec sleep
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 } else {
                     inputEOS = true;
                 }
+            } else if (state == RELEASE) {
+                inputEOS = true;
             } else {
-                try {
-                    Thread.sleep(100); // 0.01sec sleep
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                sleep();
             }
         }
-        release();
+        sampleQueue.setExtractorEOS(true);
     }
 
     public void release() {
+        Log.i(TAG, "release()");
+        state = RELEASE;
+        sleep();
         extractor.release();
         extractor = null;
-        sampleQueue.setExtractorEOS(true);
+        sampleQueue.clear();
+        sampleQueue = null;
     }
 
     public void pause() {
@@ -124,6 +118,14 @@ public class Extractor extends Thread{
             e.printStackTrace();
             state = START;
             return false;
+        }
+    }
+
+    public void sleep() {
+        try {
+            Thread.sleep(10); // 0.01sec sleep
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

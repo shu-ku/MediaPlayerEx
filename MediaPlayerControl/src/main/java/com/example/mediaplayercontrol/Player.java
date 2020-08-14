@@ -3,11 +3,6 @@ package com.example.mediaplayercontrol;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Queue;
-
 import static com.example.mediaplayercontrol.PlayerState.State.Idle;
 import static com.example.mediaplayercontrol.PlayerState.State.Initialized;
 import static com.example.mediaplayercontrol.PlayerState.State.Prepared;
@@ -19,12 +14,13 @@ import static com.example.mediaplayercontrol.PlayerState.State.End;
 import static com.example.mediaplayercontrol.PlayerState.State.Error;
 import static com.example.mediaplayercontrol.PlayerState.State;
 
-public class Player implements Codec.PlaybackCompleteCallback{
+public class Player implements Codec.Callback {
     private final static String TAG = "Player";
     private Extractor extractor;
     private Format[] formats;
     private State state = Idle;
     private Clock clock;
+    private Callback playbackCompleteCallback;
 
     public Player() {
         transitState(Idle);
@@ -113,18 +109,23 @@ public class Player implements Codec.PlaybackCompleteCallback{
 
     public void release() {
         if (state.checkRelease()) {
+            Log.i(TAG, "release()");
+            extractor.release();
             for (Format format : formats) {
                 Log.i(TAG, "codec end");
                 format.codec.release();
                 break;
             }
+            transitState();
         }
     }
 
     @Override
     public void playbackComplete() {
         Log.i(TAG, "playbackComplete");
-        release();
+        if (playbackCompleteCallback != null) {
+            playbackCompleteCallback.playbackComplete();
+        }
     }
 
     public long getDurationUs() {
@@ -154,5 +155,14 @@ public class Player implements Codec.PlaybackCompleteCallback{
     public void transitState() {
         Log.i(TAG, "transitState: " + this.state + " -> " + PlayerState.getPlayerState());
         this.state = PlayerState.getPlayerState();
+    }
+
+    public void setPlaybackCompleteCallback(Callback callback) {
+        Log.i(TAG, "setPlaybackCompleteCallback");
+        playbackCompleteCallback = callback;
+    }
+
+    public static interface Callback {
+        void playbackComplete();
     }
 }
