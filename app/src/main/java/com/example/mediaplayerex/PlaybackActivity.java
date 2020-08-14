@@ -63,6 +63,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         findViewById(R.id.playback_prev).setOnClickListener(buttonClick);
         findViewById(R.id.playback_resume).setOnClickListener(buttonClick);
         findViewById(R.id.playback_next).setOnClickListener(buttonClick);
+        findViewById(R.id.playback_release).setOnClickListener(buttonClick);
 
         checkPermission();
     }
@@ -110,6 +111,12 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         }
     }
 
+    public void button_release() {
+        if (isPlayer) {
+            playbackComplete();
+        }
+    }
+
     public void button_next() {
         synchronized (lockObj) {
             Log.i(TAG, "seek button_next");
@@ -150,7 +157,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                     button_stop();
                     break;
                 case R.id.playback_permission:
-                    Log.d(TAG,"resume, Perform action on click");
+                    Log.d(TAG,"permission, Perform action on click");
                     checkPermission();
                     break;
                 case R.id.playback_prev:
@@ -163,6 +170,10 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                 case R.id.playback_next:
                     Log.d(TAG,"next, Perform action on click");
                     button_next();
+                    break;
+                case R.id.playback_release:
+                    Log.d(TAG,"release, Perform action on click");
+                    button_release();
                     break;
             }
         }
@@ -238,9 +249,9 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                Log.d(TAG, "onScrollChange, Perform action on click" +
-                        " i=" + i +
-                        " b=" + b);
+//                Log.d(TAG, "onScrollChange, Perform action on click" +
+//                        " i=" + i +
+//                        " b=" + b);
                 progressValue = i;
             }
 
@@ -306,8 +317,10 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     @Override
     public void playbackComplete() {
         Log.i(TAG, "playbackComplete");
-        mPlayer.release();
-        isPlayer = false;
-        mPlayer = null;
+        if (isPlayer) {
+            isPlayer = false;
+            mPlayer.release();
+            mPlayer = null;
+        }
     }
 }
