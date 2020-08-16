@@ -106,20 +106,23 @@ public class Extractor extends Thread{
         sampleQueue = null;
     }
 
+    public void play() {
+        state = START;
+    }
+
     public void pause() {
         state = PAUSE;
+        sleep();
         sampleQueue.clear();
     }
 
     public boolean seekTo(long seekPositionUs) {
         try {
-            sampleQueue.clear();
             extractor.seekTo(seekPositionUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-            state = START;
+//            sampleQueue.clear();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            state = START;
             return false;
         }
     }

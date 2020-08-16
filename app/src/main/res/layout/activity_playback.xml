@@ -116,7 +116,7 @@
             android:layout_marginRight="0dp"
             tools:ignore="ButtonStyle"/>
         <Button
-            android:text="prev"
+            android:text="-10sec"
             android:id="@+id/playback_prev"
             android:layout_weight="1"
             android:layout_width="match_parent"
@@ -127,7 +127,7 @@
             android:layout_marginRight="0dp"
             tools:ignore="ButtonStyle"/>
         <Button
-            android:text="next"
+            android:text="+10sec"
             android:id="@+id/playback_next"
             android:layout_weight="1"
             android:layout_width="match_parent"

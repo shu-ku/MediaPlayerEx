@@ -19,6 +19,7 @@ public class VideoCodec extends Codec{
     public void prepare(Format format, SurfaceHolder sh, SampleQueue sampleQueue) {
         super.prepare(format, null, sampleQueue);
         try {
+            outputIndex = NOT_SET_INDEX;
             codec = MediaCodec.createDecoderByType(format.mimeType);
             Log.i(TAG, "Video Tunnel mode:" + RendererConfiguration.getInstance().getTunnelingAudioSessionId());
             format.format.setInteger(MediaFormat.KEY_AUDIO_SESSION_ID,
@@ -36,16 +37,26 @@ public class VideoCodec extends Codec{
             return false;
         }
         info = new MediaCodec.BufferInfo();
-        outputIndex = codec.dequeueOutputBuffer(info, 0);
-        Log.i(TAG, "dequeueOutputBuffer outputIndex=" + outputIndex);
+        Log.i(TAG, "video dequeueOutputBuffer outputIndex=" + outputIndex);
+        if (outputIndex == NOT_SET_INDEX) {
+            outputIndex = codec.dequeueOutputBuffer(info, 0);
+            if (outputIndex == NOT_SET_INDEX) {
+                return true;
+            }
+        }
         if (outputIndex >= 0) {
-            ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
-            releaseOutputBuffer(outputIndex);
+//            ByteBuffer outputBuffer = codec.getOutputBuffer(outputIndex);
+            if (!releaseOutputBuffer(outputIndex)) {
+                return false;
+            }
         } else if (outputIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+            // -3
 //            outputBuffers = codec.getOutputBuffers();
         } else if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+            // -2
             format.format = codec.getOutputFormat();
         }
+        outputIndex = NOT_SET_INDEX;
         return true;
     }
 
@@ -53,7 +64,7 @@ public class VideoCodec extends Codec{
         this.clock = clock;
     };
 
-    private void releaseOutputBuffer(int outputIndex) {
+    private boolean releaseOutputBuffer(int outputIndex) {
         long currentPosition = clock.getCurrentPositionUs();
         long differenceTime =  presentationTimeUs - currentPosition;
         Log.i(TAG, "releaseOutputBuffer" +
@@ -62,13 +73,17 @@ public class VideoCodec extends Codec{
                 " differenceTime=" + differenceTime);
         if (Math.abs(differenceTime) <= 500_000) {
             codec.releaseOutputBuffer(outputIndex, true);
+            return true;
         } else if (differenceTime < -500_000) {
             Log.i(TAG, "releaseOutputBuffer" +
                     " differenceTime=" + differenceTime + " drop");
             codec.releaseOutputBuffer(outputIndex, false);
-        } else if (differenceTime > 500_000) {
+            return true;
+        } else {
+            // differenceTime > 500_000
             Log.i(TAG, "releaseOutputBuffer" +
                     " differenceTime=" + differenceTime + " wait");
+            return false;
         }
     }
 }

@@ -34,7 +34,6 @@ public class Audio{
         if (mAudioTrack != null) {
             mAudioTrack.flush();
             this.seekPositionUs = seekPositionUs;
-            mAudioTrack.play();
         }
     }
 

@@ -69,6 +69,7 @@ public class AudioCodec extends Codec implements Clock{
     }
 
     public void play() {
+        super.play();
         Log.i(TAG, "play()");
         if (audio != null) {
             audio.play();
@@ -76,6 +77,7 @@ public class AudioCodec extends Codec implements Clock{
     }
 
     public void seekTo(long seekPositionUs) {
+        super.seekTo(seekPositionUs);
         if (audio != null) {
             audio.seekTo(seekPositionUs);
         }

@@ -21,8 +21,8 @@ public class Codec extends Thread {
     ByteBuffer inputBuffer;
     protected Callback playbackCompleteCallback;
 
-    private final static int NOT_SET_INDEX = -1;
-    private final static ByteBuffer NOT_SET_BUFFER = null;
+    protected final static int NOT_SET_INDEX = -1;
+    protected final static ByteBuffer NOT_SET_BUFFER = null;
 
     public Codec() {
 
@@ -58,10 +58,12 @@ public class Codec extends Thread {
 
     public boolean QueueInputBuffer() {
         if (sampleQueue.size() <= 0) {
+            Log.i(TAG, "isVideo=" + format.isVideo + " sampleQueue.size() <= 0");
             return false;
         }
         sampleHolder = sampleQueue.poll(format.trackIndex);
         if (sampleHolder == null) {
+            Log.i(TAG, "isVideo=" + format.isVideo + " sampleHolder null");
             return false;
         }
         try {
@@ -80,14 +82,22 @@ public class Codec extends Thread {
                 }
             }
             presentationTimeUs = sampleHolder.presentationTimeUs;
-            Log.i(TAG, "queueInputBuffer" + " isVideo=" + format.isVideo +  " presentationTimeUs=" + String.format("%,d", presentationTimeUs));
+            Log.i(TAG, "queueInputBuffer" +
+                    " isVideo=" + format.isVideo +
+                    " presentationTimeUs=" + String.format("%,d", presentationTimeUs) +
+                    " inputBuffer=" + (inputBuffer != null));
             inputBuffer.put(sampleHolder.inputBuffer.array(), 0, sampleHolder.inputBuffer.limit());
             codec.queueInputBuffer(inputIndex, 0, sampleHolder.inputBuffer.limit(), presentationTimeUs, 0);
-            inputIndex = NOT_SET_INDEX;
-            inputBuffer = NOT_SET_BUFFER;
-            return processOutputBuffer();
+            if (processOutputBuffer()) {
+                inputIndex = NOT_SET_INDEX;
+                inputBuffer = NOT_SET_BUFFER;
+                return true;
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            // TODO Process for each Exception
+            inputIndex = NOT_SET_INDEX;
+            inputBuffer = NOT_SET_BUFFER;
         }
         return false;
     }
@@ -103,16 +113,12 @@ public class Codec extends Thread {
     }
 
     public void pause() {
-        codec.flush();
     }
 
     public void play() {
     }
 
     public void seekTo(long seekPositionUs) {
-    }
-
-    public void flush() {
 //        codec.flush();
     }
 

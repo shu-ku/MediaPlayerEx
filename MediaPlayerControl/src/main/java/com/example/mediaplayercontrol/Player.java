@@ -82,33 +82,31 @@ public class Player implements Codec.Callback {
         Log.i(TAG, "seekTo(" + seekPositionUs + ")" +
                 " durationUs=" + String.format("%,d", durationUs) +
                 " currentPositionUs=" + String.format("%,d", currentPositionUs));
+        pause();
         if (state.checkSeekTo()) {
-            extractor.pause();
             if (extractor.seekTo(seekPositionUs)) {
                 for (Format format : formats) {
-                    format.codec.pause();
                     format.codec.seekTo(seekPositionUs);
                 }
                 transitState();
             }
         }
+        play();
         Log.i(TAG, "seekTo(" + seekPositionUs + ") <--");
     }
 
     public void resume() {
         Log.i(TAG, "resume()");
-        if (state.checkStart()) {
-            if (state.checkSeekTo()) {
-                long seekPositionUs = clock.getCurrentPositionUs();
-                if (extractor.seekTo(seekPositionUs)) {
-                    for (Format format : formats) {
-//                        format.codec.flush();
-                        format.codec.seekTo(seekPositionUs);
-                    }
-                    transitState();
+        if (state.checkSeekTo()) {
+            long seekPositionUs = clock.getCurrentPositionUs();
+            if (extractor.seekTo(seekPositionUs)) {
+                for (Format format : formats) {
+                    format.codec.seekTo(seekPositionUs);
                 }
+                transitState();
             }
         }
+        play();
     }
 
     public void pause() {
@@ -116,10 +114,19 @@ public class Player implements Codec.Callback {
         if (state.checkPause()) {
             extractor.pause();
             for (Format format : formats) {
-                if (!format.isVideo) {
-                    format.codec.pause();
-                }
+                format.codec.pause();
             }
+            transitState();
+        }
+    }
+
+    public void play() {
+        Log.i(TAG, "pause()");
+        if (state.checkStart()) {
+            for (Format format : formats) {
+                format.codec.play();
+            }
+            extractor.play();
             transitState();
         }
     }

@@ -16,7 +16,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.mediaplayercontrol.Format;
 import com.example.mediaplayercontrol.Player;
 
 import androidx.annotation.NonNull;
@@ -26,6 +25,7 @@ import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder.Callback, Player.Callback {
     private final static String TAG = "PlaybackActivity";
@@ -43,6 +43,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     private int durationMs;
     private int currentPositionMs;
     final Object lockObj = new Object();
+    private ReentrantLock lock = new ReentrantLock();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,7 +97,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     }
 
     public void button_start() {
-        if (!isPlayer && readExternalStoragePermission) {
+        if (!isPlayer && readExternalStoragePermission && !path.equals("")) {
             isPlayer = true;
             mPlayer = new Player();
             mPlayer.setPlaybackCompleteCallback(this);
@@ -124,27 +125,21 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     }
 
     public void button_next() {
-        synchronized (lockObj) {
-            Log.i(TAG, "seek button_next");
-            if (isPlayer) {
-                long seekPositionUs = mPlayer.getCurrentPositionUs() + 10_000_000L;
-                if (seekPositionUs < durationUs) {
-                    mPlayer.seekTo(seekPositionUs);
-                }
+        if (isPlayer) {
+            long seekPositionUs = mPlayer.getCurrentPositionUs() + 10_000_000L;
+            if (seekPositionUs < durationUs) {
+                mPlayer.seekTo(seekPositionUs);
             }
         }
     }
 
     public void button_prev() {
-        synchronized (lockObj) {
-            Log.i(TAG, "seek button_prev");
-            if (isPlayer && readExternalStoragePermission) {
-                long seekPositionUs = mPlayer.getCurrentPositionUs() - 10_000_000L;
-                if (seekPositionUs > 0) {
-                    mPlayer.seekTo(seekPositionUs);
-                } else {
-                    mPlayer.seekTo(0);
-                }
+        if (isPlayer && readExternalStoragePermission) {
+            long seekPositionUs = mPlayer.getCurrentPositionUs() - 10_000_000L;
+            if (seekPositionUs > 0) {
+                mPlayer.seekTo(seekPositionUs);
+            } else {
+                mPlayer.seekTo(0);
             }
         }
     }
@@ -152,36 +147,49 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     private View.OnClickListener buttonClick = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            switch (view.getId()) {
-                case R.id.playback_start:
-                    Log.d(TAG,"start, Perform action on click");
-                    button_start();
-                    Log.d(TAG,"start, end");
-                    break;
-                case R.id.playback_pause:
-                    Log.d(TAG,"pause, Perform action on click");
-                    button_pause();
-                    break;
-                case R.id.playback_permission:
-                    Log.d(TAG,"permission, Perform action on click");
-                    checkPermission();
-                    break;
-                case R.id.playback_prev:
-                    Log.d(TAG,"prev, Perform action on click");
-                    button_prev();
-                    break;
-                case R.id.playback_resume:
-                    Log.d(TAG,"resume, Perform action on click");
-                    button_resume();
-                    break;
-                case R.id.playback_next:
-                    Log.d(TAG,"next, Perform action on click");
-                    button_next();
-                    break;
-                case R.id.playback_release:
-                    Log.d(TAG,"release, Perform action on click");
-                    button_release();
-                    break;
+            try {
+                lock.lock();
+                switch (view.getId()) {
+                    case R.id.playback_start:
+                        Log.d(TAG, "start, Perform action on click -->");
+                        button_start();
+                        Log.d(TAG, "start, Perform action on click <--");
+                        break;
+                    case R.id.playback_pause:
+                        Log.d(TAG, "pause, Perform action on click -->");
+                        button_pause();
+                        Log.d(TAG, "pause, Perform action on click <--");
+                        break;
+                    case R.id.playback_permission:
+                        Log.d(TAG, "permission, Perform action on click -->");
+                        checkPermission();
+                        Log.d(TAG, "permission, Perform action on click <--");
+                        break;
+                    case R.id.playback_prev:
+                        Log.d(TAG, "prev, Perform action on click -->");
+                        button_prev();
+                        Log.d(TAG, "prev, Perform action on click <--");
+                        break;
+                    case R.id.playback_resume:
+                        Log.d(TAG, "resume, Perform action on click -->");
+                        button_resume();
+                        Log.d(TAG, "resume, Perform action on click <--");
+                        break;
+                    case R.id.playback_next:
+                        Log.d(TAG, "next, Perform action on click -->");
+                        button_next();
+                        Log.d(TAG, "next, Perform action on click <--");
+                        break;
+                    case R.id.playback_release:
+                        Log.d(TAG, "release, Perform action on click -->");
+                        button_release();
+                        Log.d(TAG, "release, Perform action on click <--");
+                        break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
         }
     };
@@ -228,6 +236,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     public void setListView() {
         ArrayList<String> contents = new ArrayList<>();
         final File[] fileList  = getFileList();
+        path = "";
         if (fileList != null) {
             for (File file : fileList) {
                 contents.add(file.getName());
@@ -274,7 +283,6 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         });
         seekBar.setMax(0);
         seekBar.setMin(0);
-//        seekBar.setProgress(progressValue);
         setTextViewCurrentPosition(progressValue);
     }
 
@@ -284,7 +292,7 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
 
     public void setTextViewCurrentPosition(int progressValue) {
         textViewCurrentPosition.setText(progressFormat(progressValue));
-        Log.d(TAG, "setTextViewCurrentPosition, progressValue=" + progressValue);
+//        Log.d(TAG, "setTextViewCurrentPosition, progressValue=" + progressValue);
     }
 
     @SuppressLint("DefaultLocale")
