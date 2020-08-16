@@ -49,6 +49,13 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onResume() {
+        Log.d(TAG, "onResume");
+        lock.lock();
+        super.onResume();
         setContentView(R.layout.activity_playback);
         textViewCurrentPosition = (TextView)findViewById(R.id.playback_position);
         textViewDuration = (TextView)findViewById(R.id.playback_duration);
@@ -65,15 +72,26 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
         findViewById(R.id.playback_resume).setOnClickListener(buttonClick);
         findViewById(R.id.playback_next).setOnClickListener(buttonClick);
         findViewById(R.id.playback_release).setOnClickListener(buttonClick);
-
         checkPermission();
+        lock.unlock();
     }
 
     @Override
-    public void onResume() {
-        Log.d(TAG, "onResume");
-        super.onResume();
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+        if (isPlayer) {
+            playbackComplete();
+        }
     }
+
+    @Override
+    public void onStop() {
+        Log.d(TAG, "onPause");
+        super.onStop();
+    }
+
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -281,8 +299,8 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
                 setTextViewCurrentPosition(progressValue);
             }
         });
-        seekBar.setMax(0);
         seekBar.setMin(0);
+        setProgressBarMax(0);
         setTextViewCurrentPosition(progressValue);
     }
 
@@ -314,10 +332,13 @@ public class PlaybackActivity extends AppCompatActivity implements SurfaceHolder
     private void setCurrentPositionMs() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                while (isPlayer && currentPositionMs < durationMs) {
+                while (isPlayer) {
                     currentPositionMs = mPlayer.getCurrentPositionMs();
                     setTextViewCurrentPosition(currentPositionMs);
-                    seekBar.setProgress(currentPositionMs);
+                    if (currentPositionMs > 0 && currentPositionMs < durationMs) {
+                        seekBar.setProgress(currentPositionMs);
+//                        Log.i(TAG, "setProgress currentPositionMs=" + currentPositionMs);
+                    }
                     try {
                         Thread.sleep(10); // 10Ms sleep
                     } catch (InterruptedException e) {

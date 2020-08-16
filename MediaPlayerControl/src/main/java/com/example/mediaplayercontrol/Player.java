@@ -97,13 +97,14 @@ public class Player implements Codec.Callback {
 
     public void resume() {
         Log.i(TAG, "resume()");
-        if (state.checkSeekTo()) {
-            long seekPositionUs = clock.getCurrentPositionUs();
-            if (extractor.seekTo(seekPositionUs)) {
-                for (Format format : formats) {
-                    format.codec.seekTo(seekPositionUs);
+        if (state.checkStart()) {
+            if (state.checkSeekTo()) {
+                long seekPositionUs = clock.getCurrentPositionUs();
+                if (extractor.seekTo(seekPositionUs)) {
+                    for (Format format : formats) {
+                        format.codec.seekTo(seekPositionUs);
+                    }
                 }
-                transitState();
             }
         }
         play();
